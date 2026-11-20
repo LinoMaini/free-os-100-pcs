@@ -11,7 +11,7 @@ This repository holds our school presentation's website: a one-page, 3D, sticker
 
 ## What it does
 
-- A toon-shaded 3D computer (three.js) whose screen and stickers change with every section as you scroll.
+- A toon-shaded 3D computer (three.js), surrounded by the other 99 donated PCs. Scroll and the camera dives through its screen: inside, every section is a small 3D world in its own colour, from the three systems checked with a magnifier to the score towers and the podium.
 - **Play the tour** scrolls through the whole story by itself. During the tour, the arrow keys or a presentation clicker move between stops; Esc stops it.
 - An interactive scorecard: change how much each criterion matters and watch the ranking move.
 - Works without WebGL (static drawing) and respects the system's "reduce motion" setting.
@@ -21,7 +21,8 @@ This repository holds our school presentation's website: a one-page, 3D, sticker
 - `index.html`, `css/style.css`, `js/app.js`: the site.
 - `src/`: source of the script (`main.js` page logic, `scene.js` 3D stage, `screens.js` screen and sticker drawings).
 - `dist/standalone.html`: the same site in a single file.
-- `docs/speech.md`: the speaker script, about 3 minutes each, with likely questions and sources.
+- `docs/speech.md` and `docs/Discorso.pdf`: the speaker script, about 3 minutes each, with likely questions and sources.
+- `docs/Presentazione.pdf`: the 12 slides.
 
 ## Build
 

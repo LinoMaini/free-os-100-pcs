@@ -4,20 +4,21 @@ import { createStage } from './scene.js';
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   // Where the computer sits for each section: ax/ay = screen position (0–1), m* = phone values,
-  // az/el = camera orbit, zoom = distance factor, screen = what the monitor shows, focus = sticker that lands on it.
+  // az/el = camera orbit, zoom = distance factor, screen = what the monitor shows, bg = page colour,
+  // inside = the world inside the computer (the camera dives through the screen), crowd/lit = the other 99 PCs.
   const SCENES = {
-    top:       { ax: 0.77, ay: 0.54, max: 0.5, may: 0.8, az: -0.5, el: 0.12, zoom: 1.12, mzoom: 1.4, screen: 'hello' },
-    challenge: { ax: 0.27, ay: 0.52, max: 0.5, may: 0.28, az: 0.42, el: 0.16, zoom: 1.02, mzoom: 1.12, screen: 'grid100' },
-    method:    { ax: 0.72, ay: 0.5, max: 0.5, may: 0.28, az: -0.2, el: 0.28, zoom: 1.05, screen: 'funnel', funnel: 1 },
-    mint:      { ax: 0.27, ay: 0.5, max: 0.5, may: 0.28, az: 0.28, el: 0.06, zoom: 0.9, mzoom: 1.08, screen: 'mint', focus: 'mint' },
-    zorin:     { ax: 0.73, ay: 0.5, max: 0.5, may: 0.28, az: -0.28, el: 0.06, zoom: 0.9, mzoom: 1.08, screen: 'zorin', focus: 'zorin' },
-    endless:   { ax: 0.27, ay: 0.5, max: 0.5, may: 0.28, az: 0.28, el: 0.06, zoom: 0.9, mzoom: 1.08, screen: 'endless', focus: 'endless' },
-    scores:    { ax: 0.83, ay: 0.5, max: 0.5, may: 0.28, az: -0.55, el: 0.2, zoom: 1.38, screen: 'chart' },
-    energy:    { ax: 0.27, ay: 0.5, max: 0.5, may: 0.28, az: 0.5, el: 0.32, zoom: 1.05, screen: 'chart' },
-    access:    { ax: 0.74, ay: 0.5, max: 0.5, may: 0.28, az: -0.32, el: 0.1, zoom: 1.0, screen: 'access' },
-    pick:      { ax: 0.72, ay: 0.5, max: 0.5, may: 0.28, az: -0.12, el: 0.06, zoom: 0.92, mzoom: 1.08, screen: 'check', focus: 'pick', confetti: true },
-    plan:      { ax: 0.27, ay: 0.5, max: 0.5, may: 0.28, az: 0.45, el: 0.2, zoom: 1.0, screen: 'usb' },
-    end:       { ax: 0.72, ay: 0.52, max: 0.5, may: 0.28, az: -0.4, el: 0.12, zoom: 1.0, screen: 'smile' },
+    top:       { ax: 0.77, ay: 0.54, max: 0.5, may: 0.8, az: -0.5, el: 0.12, zoom: 1.12, mzoom: 1.4, screen: 'hello', bg: '#FFE14D' },
+    challenge: { ax: 0.27, ay: 0.52, max: 0.5, may: 0.28, az: 0.42, el: 0.3, zoom: 1.2, mzoom: 1.3, screen: 'grid100', crowd: 1, bg: '#FF9ECF' },
+    method:    { inside: 'funnel', ax: 0.72, ay: 0.5, max: 0.5, may: 0.28, az: -0.2, el: 0.28, zoom: 1.05, crowd: 1, bg: '#B7A3FF' },
+    mint:      { inside: 'mint', ax: 0.27, ay: 0.5, max: 0.5, may: 0.28, az: 0.32, el: 0.1, zoom: 1.0, bg: '#FF8F8F' },
+    zorin:     { inside: 'zorin', ax: 0.73, ay: 0.5, max: 0.5, may: 0.28, az: -0.32, el: 0.1, zoom: 1.0, bg: '#FFB07A' },
+    endless:   { inside: 'endless', ax: 0.27, ay: 0.5, max: 0.5, may: 0.28, az: 0.32, el: 0.1, zoom: 1.0, bg: '#7CC8FF' },
+    scores:    { inside: 'scores', ax: 0.83, ay: 0.5, max: 0.5, may: 0.28, az: -0.45, el: 0.22, zoom: 1.38, mzoom: 1.1, bg: '#C8EE5A' },
+    energy:    { inside: 'energy', ax: 0.27, ay: 0.5, max: 0.5, may: 0.28, az: 0.45, el: 0.18, zoom: 1.05, bg: '#6EE2D0' },
+    access:    { inside: 'access', ax: 0.74, ay: 0.5, max: 0.5, may: 0.28, az: -0.3, el: 0.12, zoom: 1.0, bg: '#FF9ECF' },
+    pick:      { inside: 'pick', ax: 0.72, ay: 0.5, max: 0.5, may: 0.28, az: -0.15, el: 0.16, zoom: 1.0, bg: '#B7A3FF', confetti: true },
+    plan:      { ax: 0.27, ay: 0.5, max: 0.5, may: 0.28, az: 0.45, el: 0.3, zoom: 1.2, mzoom: 1.3, screen: 'usb', crowd: 1, lit: 1, bg: '#FFE14D' },
+    end:       { ax: 0.72, ay: 0.52, max: 0.5, may: 0.28, az: -0.4, el: 0.22, zoom: 1.15, mzoom: 1.3, screen: 'smile', crowd: 1, lit: 1, bg: '#FFE14D', confetti: true },
   };
 
   const sections = [...document.querySelectorAll('[data-scene]')];
@@ -26,7 +27,12 @@ import { createStage } from './scene.js';
   try {
     const probe = document.createElement('canvas');
     if (!(probe.getContext('webgl2') || probe.getContext('webgl'))) throw new Error('no webgl');
-    stage = createStage(canvas, SCENES, sections, { reduceMotion });
+    const nav = document.querySelector('.nav');
+    stage = createStage(canvas, SCENES, sections, {
+      reduceMotion,
+      flash: document.getElementById('flash'),
+      onBg: (hex) => { document.body.style.backgroundColor = hex; if (nav) nav.style.backgroundColor = hex; },
+    });
     document.fonts?.ready.then(() => stage.redrawText());
   } catch (err) {
     document.documentElement.classList.add('no-webgl');
@@ -95,6 +101,7 @@ import { createStage } from './scene.js';
     `<div class="srow stot"><span class="crit">Total</span><span class="weight" id="maxNote"></span>${OS.map((o) => `<span class="cell tot" id="t-${o.key}"></span>`).join('')}</div>`;
 
   function renderTotals() {
+    stage?.setScores(weights, CRITERIA.map((c) => c.s));
     const max = 5 * weights.reduce((a, b) => a + b, 0);
     const totals = OS.map((_, i) => CRITERIA.reduce((sum, c, r) => sum + c.s[i] * weights[r], 0));
     const best = Math.max(...totals);
