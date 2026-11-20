@@ -1,0 +1,13 @@
+{
+  "name": "free-os-100-pcs",
+  "version": "1.0.0",
+  "description": "Which free OS should Asus install on 100 donated PCs? A 3D sticker-style website for a school presentation.",
+  "scripts": {
+    "build": "node build.mjs"
+  },
+  "dependencies": {
+    "esbuild": "^0.28.2",
+    "three": "^0.187.0"
+  },
+  "private": true
+}
