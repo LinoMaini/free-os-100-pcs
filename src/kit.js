@@ -9,6 +9,9 @@ export const smooth = (a, b, x) => { const t = clamp01((x - a) / (b - a)); retur
 export const easeOutCubic = (t) => 1 - (1 - t) ** 3;
 export const easeOutBack = (t) => { const u = t - 1; return 1 + 2.7 * u * u * u + 1.7 * u * u; };
 
+// Sound effects; main.js fills these in when the visitor turns sound on.
+export const sfx = { pop() {}, whoosh() {}, tada() {} };
+
 export const PAL = {
   yellow: '#FFE14D', pink: '#FF9ECF', lilac: '#B7A3FF', sky: '#7CC8FF', peach: '#FFB07A',
   lime: '#C8EE5A', aqua: '#6EE2D0', coral: '#FF8F8F', red: '#FF4D4D', cyan: '#5CE1E6',

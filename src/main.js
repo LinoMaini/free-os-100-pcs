@@ -1,7 +1,9 @@
 import { createStage } from './scene.js';
+import { initCrazy } from './crazy.js';
 
 {
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  document.documentElement.classList.add('js');
 
   // Where the computer sits for each section: ax/ay = screen position (0–1), m* = phone values,
   // az/el = camera orbit, zoom = distance factor, screen = what the monitor shows, bg = page colour,
@@ -31,12 +33,14 @@ import { createStage } from './scene.js';
     stage = createStage(canvas, SCENES, sections, {
       reduceMotion,
       flash: document.getElementById('flash'),
+      burst: document.getElementById('burst'),
       onBg: (hex) => { document.body.style.backgroundColor = hex; if (nav) nav.style.backgroundColor = hex; },
     });
     document.fonts?.ready.then(() => stage.redrawText());
   } catch (err) {
     document.documentElement.classList.add('no-webgl');
   }
+  initCrazy(stage, { reduceMotion });
 
   // ---------- count-up on "100" ----------
   const countEl = document.querySelector('[data-count]');

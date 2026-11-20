@@ -12,6 +12,8 @@ This repository holds our school presentation's website: a one-page, 3D, sticker
 ## What it does
 
 - A toon-shaded 3D computer (three.js), surrounded by the other 99 donated PCs. Scroll and the camera dives through its screen: inside, every section is a small 3D world in its own colour, from the three systems checked with a magnifier to the score towers and the podium.
+- The dive spins through the glass like a corkscrew, with a rainbow flash; each new section's colour spreads out of the 3D object under turning sunburst rays.
+- Click any empty spot to make cubes burst out of it. Press **P** for party mode (press again to stop). The speaker button in the menu turns sound on (off by default).
 - **Play the tour** scrolls through the whole story by itself. During the tour, the arrow keys or a presentation clicker move between stops; Esc stops it.
 - An interactive scorecard: change how much each criterion matters and watch the ranking move.
 - Works without WebGL (static drawing) and respects the system's "reduce motion" setting.
@@ -19,7 +21,7 @@ This repository holds our school presentation's website: a one-page, 3D, sticker
 ## Files
 
 - `index.html`, `css/style.css`, `js/app.js`: the site.
-- `src/`: source of the script (`main.js` page logic, `scene.js` 3D stage, `screens.js` screen and sticker drawings).
+- `src/`: source of the script (`main.js` page logic, `scene.js` 3D stage, `worlds.js` the worlds inside the computer, `crazy.js` sound, party mode and other effects, `kit.js` shared 3D pieces, `screens.js` screen and sticker drawings).
 - `dist/standalone.html`: the same site in a single file.
 - `docs/speech.md` and `docs/Discorso.pdf`: the speaker script, about 3 minutes each, with likely questions and sources.
 - `docs/Presentazione.pdf`: the 12 slides.

@@ -3,15 +3,51 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { COLORS, SCREEN_NAMES, drawScreen, drawRound } from './screens.js';
-import { lerp, smooth, clamp01, easeOutBack, easeOutCubic, PAL, toon, toonNew, part, rbox, outlineMat, labels, makeLabel, makeConfetti, makeFloaters } from './kit.js';
+import { lerp, smooth, clamp01, easeOutBack, easeOutCubic, PAL, toon, toonNew, part, rbox, outlineMat, labels, makeLabel, makeConfetti, makeFloaters, sfx } from './kit.js';
 import { buildWorlds } from './worlds.js';
 
 const ENTRY = 2.6; // inside, the camera starts this many times farther away and flies in
+const easeOutBounce = (x) => {
+  const n = 7.5625, d = 2.75;
+  if (x < 1 / d) return n * x * x;
+  if (x < 2 / d) return n * (x -= 1.5 / d) * x + 0.75;
+  if (x < 2.5 / d) return n * (x -= 2.25 / d) * x + 0.9375;
+  return n * (x -= 2.625 / d) * x + 0.984375;
+};
+const srgb = new Map();
+const setSrgb = (v, hex = PAL.yellow) => {
+  let c = srgb.get(hex);
+  if (!c) { const n = parseInt(hex.slice(1), 16); c = [((n >> 16) & 255) / 255, ((n >> 8) & 255) / 255, (n & 255) / 255]; srgb.set(hex, c); }
+  v.set(c[0], c[1], c[2]);
+};
+
+// Full-screen background: the next section's colour spreads out of the 3D object in a circle,
+// under slowly turning sunburst rays and halftone dots. Party mode turns it into a rainbow.
+const BG_FRAG = `varying vec2 vUv;
+uniform vec2 uRes, uCenter;
+uniform vec3 uColA, uColB;
+uniform float uWipe, uSpin, uParty, uTime;
+vec3 hsv(float h){ vec3 p = abs(fract(h + vec3(0.0, 2.0 / 3.0, 1.0 / 3.0)) * 6.0 - 3.0); return mix(vec3(1.0), clamp(p - 1.0, 0.0, 1.0), 0.55); }
+void main(){
+  vec2 p = vUv * uRes, d = p - uCenter * uRes;
+  float r = length(d), R = length(uRes);
+  float edge = uWipe * R * 1.08;
+  vec3 col = mix(uColA, uColB, 1.0 - smoothstep(edge - 1.5, edge + 1.5, r));
+  float ring = (1.0 - smoothstep(1.5, 5.0, abs(r - edge))) * step(0.002, uWipe) * step(uWipe, 0.998);
+  col = mix(col, hsv(fract(uTime * 0.22 + r / R * 0.7)), uParty * 0.85);
+  float rays = step(0.5, fract(atan(d.y, d.x) / 6.2831853 * 18.0 + uSpin));
+  col = mix(col, mix(col, vec3(1.0), 0.17), rays * smoothstep(70.0, 280.0, r));
+  vec2 g = mod(p, 18.0) - 9.0;
+  float dr = 3.3 * smoothstep(0.22, 0.9, r / R);
+  col = mix(col, col * 0.84, 1.0 - smoothstep(dr - 0.7, dr + 0.7, length(g)));
+  gl_FragColor = vec4(mix(col, vec3(0.0), ring * 0.9), 1.0);
+}`;
 
 export function createStage(canvas, scenes, sections, opts = {}) {
   const reduce = !!opts.reduceMotion;
   const onBg = opts.onBg || (() => {});
   const flash = opts.flash || null;
+  const burstEl = opts.burst || null;
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: 'high-performance' });
   renderer.setClearColor(0x000000, 0);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -25,6 +61,76 @@ export function createStage(canvas, scenes, sections, opts = {}) {
   };
   const camera = new THREE.PerspectiveCamera(30, 1, 0.05, 300);
   const dummy = new THREE.Object3D();
+
+  const bgU = {
+    uRes: { value: new THREE.Vector2(1, 1) }, uCenter: { value: new THREE.Vector2(0.5, 0.5) },
+    uColA: { value: new THREE.Vector3(1, 0.88, 0.3) }, uColB: { value: new THREE.Vector3(1, 0.88, 0.3) },
+    uWipe: { value: 0 }, uSpin: { value: 0 }, uParty: { value: 0 }, uTime: { value: 0 },
+  };
+  const bgScene = new THREE.Scene();
+  const bgQuad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), new THREE.ShaderMaterial({
+    uniforms: bgU, fragmentShader: BG_FRAG, depthTest: false, depthWrite: false,
+    vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }',
+  }));
+  bgQuad.frustumCulled = false;
+  bgScene.add(bgQuad);
+  const bgCam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+
+  // Click on an empty spot: a handful of chunky cubes explodes out of it.
+  function makeBurstPool(parent) {
+    const N = 96, geo = rbox(0.28, 0.28, 0.28, 0.06, 2);
+    const m = new THREE.InstancedMesh(geo, toonNew(PAL.white), N);
+    const o = new THREE.InstancedMesh(geo, outlineMat(0.025), N);
+    m.frustumCulled = o.frustumCulled = false;
+    parent.add(o, m);
+    const cols = [PAL.yellow, PAL.pink, PAL.cyan, PAL.lilac, PAL.white, COLORS.mint, COLORS.zorin, COLORS.endless, PAL.red].map((c) => new THREE.Color(c));
+    const st = Array.from({ length: N }, (_, i) => { m.setColorAt(i, cols[i % cols.length]); return { p: new THREE.Vector3(), v: new THREE.Vector3(), r: new THREE.Vector3(), life: 0, s: 1 }; });
+    let next = 0, active = true;
+    return {
+      burst(at) {
+        for (let k = 0; k < 26; k++) {
+          const i = next;
+          next = (next + 1) % N;
+          const s = st[i];
+          const a = Math.random() * Math.PI * 2, el = (Math.random() - 0.3) * 1.4, sp = 3 + Math.random() * 4.5;
+          s.p.copy(at);
+          s.v.set(Math.cos(a) * Math.cos(el) * sp, Math.sin(el) * sp + 2.5, Math.sin(a) * Math.cos(el) * sp);
+          s.r.set(Math.random() * 6, Math.random() * 6, Math.random() * 6);
+          s.life = 1.3 + Math.random() * 0.5;
+          s.s = 0.6 + Math.random() * 0.9;
+          m.setColorAt(i, cols[Math.floor(Math.random() * cols.length)]);
+        }
+        m.instanceColor.needsUpdate = true;
+        active = true;
+      },
+      update(dt) {
+        if (!active) return;
+        let alive = false;
+        for (let i = 0; i < N; i++) {
+          const s = st[i];
+          if (s.life > 0) {
+            alive = true;
+            s.life -= dt;
+            s.v.y -= 9.5 * dt;
+            s.v.multiplyScalar(1 - dt * 0.6);
+            s.p.addScaledVector(s.v, dt);
+            s.r.x += dt * 6; s.r.y += dt * 4;
+            dummy.position.copy(s.p);
+            dummy.rotation.set(s.r.x, s.r.y, s.r.z);
+            dummy.scale.setScalar(Math.max(s.s * Math.min(1, s.life / 0.4), 0.0001));
+          } else {
+            dummy.position.set(0, -50, 0);
+            dummy.scale.setScalar(0.0001);
+          }
+          dummy.updateMatrix();
+          m.setMatrixAt(i, dummy.matrix);
+          o.setMatrixAt(i, dummy.matrix);
+        }
+        m.instanceMatrix.needsUpdate = o.instanceMatrix.needsUpdate = true;
+        active = alive;
+      },
+    };
+  }
 
   // ======================= outside =======================
   const scene = new THREE.Scene();
@@ -127,6 +233,7 @@ export function createStage(canvas, scenes, sections, opts = {}) {
 
   const outFloat = makeFloaters(scene, { colors: [PAL.pink, PAL.lilac, PAL.sky, COLORS.mint, COLORS.zorin, COLORS.endless, PAL.white], seed: 7 });
   const outConf = makeConfetti(rig, [0, 0.2, 0.6]);
+  const outBurst = makeBurstPool(scene);
 
   // ======================= inside =======================
   const inner = new THREE.Scene();
@@ -137,6 +244,7 @@ export function createStage(canvas, scenes, sections, opts = {}) {
   for (const w of Object.values(worlds)) { w.p = 0; w.t0 = 0; w.group.visible = false; inRig.add(w.group); }
   const inFloat = makeFloaters(inner, { colors: [PAL.yellow, PAL.white, PAL.pink, PAL.cyan, PAL.lilac, COLORS.mint, COLORS.zorin, COLORS.endless], seed: 3 });
   const inConf = makeConfetti(inRig, [0, 0.6, 0.8]);
+  const inBurst = makeBurstPool(inner);
 
   // the tunnel of coloured pixels the camera flies through on the way in
   const TN = 150;
@@ -226,6 +334,7 @@ export function createStage(canvas, scenes, sections, opts = {}) {
       crowd: lerp(a.crowd || 0, b.crowd || 0, e),
       lit: lerp(a.lit || 0, b.lit || 0, e),
       mix: smooth(0.35, 0.65, t),
+      idx: i,
     };
   }
 
@@ -237,6 +346,8 @@ export function createStage(canvas, scenes, sections, opts = {}) {
   const look = new THREE.Vector3(), screenPos = new THREE.Vector3(), probe = new THREE.Vector3();
 
   let lastDominant = null, lastHex = '', lastFlash = -1, lastFlashHex = '', portalOn = false;
+  let lastSY = window.scrollY, vel = 0, spin = 0, party = 0, partyOn = false, partyT = 0, introT = reduce ? 99 : 0, prevDv = 0, lastBurst = -1, lastInside = false;
+  const lastLook = new THREE.Vector3(), ray = new THREE.Raycaster(), ndc = new THREE.Vector2(), plane = new THREE.Plane(), hitV = new THREE.Vector3(), dirV = new THREE.Vector3();
   let time = 0, lastT = performance.now();
   function frame(now = performance.now()) {
     const dt = Math.min((now - lastT) / 1000, 0.05);
@@ -249,6 +360,23 @@ export function createStage(canvas, scenes, sections, opts = {}) {
     cur.py = lerp(cur.py, pointerY, 1 - Math.exp(-dt * 3));
     const dv = cur.dive;
     const insideNow = dv >= 0.5;
+    const sy = window.scrollY;
+    vel = lerp(vel, (sy - lastSY) / Math.max(dt, 0.001), 1 - Math.exp(-dt * 8));
+    lastSY = sy;
+    introT += dt;
+    party = lerp(party, partyOn ? 1 : 0, 1 - Math.exp(-dt * 3));
+    if (!reduce) spin += dt * (0.025 + party * 0.6) + vel * 0.0006 * dt;
+    if (!reduce && (prevDv - 0.5) * (dv - 0.5) < 0) sfx.whoosh();
+    prevDv = dv;
+    if (party > 0.5 && !reduce) { partyT += dt; if (partyT > 0.9) { partyT = 0; (insideNow ? inConf : outConf).burst(); } }
+    if (burstEl) {
+      const bs = reduce ? 0 : Math.round((dv < 0.5 ? smooth(0.26, 0.5, dv) : 1 - smooth(0.5, 0.62, dv)) * 200) / 200;
+      if (bs !== lastBurst || bs > 0) {
+        lastBurst = bs;
+        burstEl.style.opacity = bs > 0 ? '1' : '0';
+        burstEl.style.transform = `translate(-50%,-50%) scale(${(bs * 1.35).toFixed(3)}) rotate(${(dv * 540).toFixed(1)}deg)`;
+      }
+    }
 
     // page colour, and the flash that hides the jump through the glass
     bgC.lerp(tgBg, k);
@@ -277,13 +405,19 @@ export function createStage(canvas, scenes, sections, opts = {}) {
         scrB.material.opacity = tg.a.screen === tg.b.screen ? 0 : tg.mix;
       }
       const blow = smooth(0.02, 0.42, dv);
+      const drop = reduce ? 0 : 1 - easeOutBounce(clamp01((introT - 0.2) / 1.1));
+      Object.keys(stickers).forEach((key, n) => {
+        const slap = reduce ? 1 : easeOutBack(clamp01((introT - 1.15 - n * 0.16) / 0.35));
+        stickers[key].scale.setScalar(Math.max(slap, 0.0001));
+      });
       for (const key of Object.keys(stickers)) {
         const h = HOME[key], g = stickers[key];
         const bob = reduce ? 0 : Math.sin(time * 1.3 + key.length) * 0.06;
         g.position.set(h.p[0] * (1 + blow * 2.2), (h.p[1] + bob) * (1 + blow * 1.6), h.p[2] + blow * 2);
         g.rotation.set(0, reduce ? 0 : Math.sin(time * 0.8 + key.length) * 0.12, h.r + blow * h.r * 4);
       }
-      pc.position.y = reduce ? 0 : Math.sin(time * 1.1) * 0.04 * (1 - blow);
+      pc.position.y = (reduce ? 0 : Math.sin(time * 1.1) * 0.04 * (1 - blow)) + drop * 7;
+      shadow.scale.set(3.1 * (1 - drop * 0.7), 1.6 * (1 - drop * 0.7), 1);
 
       // the other 99 PCs pop up in a ripple, then light up orange one after another
       const cv = cur.crowd;
@@ -311,7 +445,7 @@ export function createStage(canvas, scenes, sections, opts = {}) {
       }
       // keep the shapes out from behind the hero text (left half on a computer, top half on a phone)
       const heroW = (tg.a === scenes.top ? 1 - tg.e : 0) + (tg.b === scenes.top ? tg.e : 0);
-      outFloat.update(reduce ? 0 : time, 1 - blow, heroW < 0.01 ? null : (p) => {
+      outFloat.update(reduce ? 0 : time, (1 - blow) * (reduce ? 1 : smooth(1.0, 2.2, introT)), heroW < 0.01 ? null : (p) => {
         probe.copy(p).project(camera);
         const sx = (probe.x + 1) / 2, sy = (1 - probe.y) / 2;
         const inText = mobile ? sy < 0.66 : sx < 0.58;
@@ -319,6 +453,8 @@ export function createStage(canvas, scenes, sections, opts = {}) {
       });
       outConf.update(dt);
     }
+    outBurst.update(dt);
+    inBurst.update(dt);
 
     // ---------- inside ----------
     const wa = tg.a.inside || tg.b.inside, wb = tg.b.inside || tg.a.inside;
@@ -353,6 +489,15 @@ export function createStage(canvas, scenes, sections, opts = {}) {
     const az = lerp(cur.az, 0, c), el = lerp(cur.el, 0, c);
     const ax = lerp(cur.ax, 0.5, c), ay = lerp(cur.ay, 0.5, c);
     const D = baseDist * cur.zoom;
+    const kick = reduce ? 0 : Math.sin(Math.PI * clamp01(dv));
+    camera.fov = 30 + 46 * kick * kick;
+    let roll = reduce ? 0 : Math.PI * 2 * smooth(0.12, 0.88, dv);
+    if (!reduce && tg.a.inside && tg.b.inside && tg.a !== tg.b) roll += Math.sin(Math.PI * tg.e) * 0.2 * (tg.idx % 2 ? -1 : 1);
+    if (!reduce) roll += party * Math.sin(time * 3.1) * 0.14;
+    const sq = reduce ? 0 : Math.min(1, Math.abs(vel) / 2500);
+    const beat = reduce ? 1 : 1 + party * 0.08 * Math.pow(Math.max(0, Math.sin(time * Math.PI * 4)), 4);
+    rig.scale.set((1 - sq * 0.07) * beat, (1 + sq * 0.14) * beat, (1 - sq * 0.07) * beat);
+    inRig.scale.copy(rig.scale);
     rig.rotation.y = cur.px * 0.14 * (1 - smooth(0, 0.25, dv));
     rig.rotation.x = cur.py * 0.05 * (1 - smooth(0, 0.25, dv));
     inRig.rotation.y = cur.px * 0.12 * smooth(0.75, 1, dv);
@@ -364,25 +509,38 @@ export function createStage(canvas, scenes, sections, opts = {}) {
       look.copy(LOOK_OUT).lerp(screenPos, smooth(0, 0.3, dv));
       const f = smooth(0.03, 0.5, dv);
       place(camera, look, az, el, lerp(D, 0.25, f * f));
+      lastLook.copy(look);
     } else {
       place(camera, LOOK_IN, az, el, D * lerp(ENTRY, 1, easeOutCubic(smooth(0.5, 1, dv))));
+      lastLook.copy(LOOK_IN);
     }
+    camera.rotateZ(roll);
+    lastInside = insideNow;
     camera.setViewOffset(W, H, (0.5 - ax) * W, (0.5 - ay) * H, W, H);
 
-    if (insideNow) {
-      renderer.render(inner, camera);
-    } else {
-      if (dv > 0.002) {
-        place(rtCam, LOOK_IN, 0, 0, D * ENTRY);
-        renderer.setRenderTarget(rt);
-        renderer.setClearColor(innerC, 1);
-        renderer.clear();
-        renderer.render(inner, rtCam);
-        renderer.setRenderTarget(null);
-        renderer.setClearColor(0x000000, 0);
-      }
-      renderer.render(scene, camera);
+    bgU.uRes.value.set(W, H);
+    bgU.uCenter.value.set(ax, 1 - ay);
+    setSrgb(bgU.uColA.value, tg.a.bg);
+    setSrgb(bgU.uColB.value, tg.b.bg);
+    bgU.uWipe.value = tg.a === tg.b ? 0 : tg.e;
+    bgU.uSpin.value = spin;
+    bgU.uParty.value = party;
+    bgU.uTime.value = reduce ? 0 : time;
+
+    renderer.autoClear = false;
+    if (!insideNow && dv > 0.002) {
+      place(rtCam, LOOK_IN, 0, 0, D * ENTRY);
+      renderer.setRenderTarget(rt);
+      renderer.setClearColor(innerC, 1);
+      renderer.clear();
+      renderer.render(inner, rtCam);
+      renderer.setRenderTarget(null);
+      renderer.setClearColor(0x000000, 0);
     }
+    renderer.clear();
+    renderer.render(bgScene, bgCam);
+    renderer.clearDepth();
+    renderer.render(insideNow ? inner : scene, camera);
     raf = requestAnimationFrame(frame);
   }
 
@@ -401,6 +559,14 @@ export function createStage(canvas, scenes, sections, opts = {}) {
       texs.hello.needsUpdate = true;
     },
     setScores(weights, rows) { worlds.scores.setScores(weights, rows); },
+    burstAt(x, y) {
+      ndc.set((x / W) * 2 - 1, -(y / H) * 2 + 1);
+      ray.setFromCamera(ndc, camera);
+      camera.getWorldDirection(dirV);
+      plane.setFromNormalAndCoplanarPoint(dirV.negate(), lastLook);
+      if (ray.ray.intersectPlane(plane, hitV)) (lastInside ? inBurst : outBurst).burst(hitV);
+    },
+    setParty(on) { partyOn = !!on; },
     measure,
     stop() { cancelAnimationFrame(raf); },
   };

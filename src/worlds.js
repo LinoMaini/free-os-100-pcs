@@ -2,7 +2,7 @@
 // Each world: { group, update(localTime, dt, reduce), onEnter? }. The stage scales them in and out.
 import * as THREE from 'three';
 import { COLORS } from './screens.js';
-import { lerp, smooth, clamp01, easeOutBack, PAL, toon, toonNew, part, rbox, outlineMat, makeLabel } from './kit.js';
+import { lerp, smooth, clamp01, easeOutBack, PAL, toon, toonNew, part, rbox, outlineMat, makeLabel, sfx } from './kit.js';
 
 const dummy = new THREE.Object3D();
 
@@ -349,8 +349,11 @@ function analysis(root, spots) {
   const LEAD = 0.9, STEP = 1.3, n = spots.length;
   const last = LEAD + (n - 1) * STEP, cycle = last + 3.6;
   const tmp = new THREE.Vector3();
+  let prevT = -1;
   return (lt, reduce) => {
     const t = reduce ? last + 0.7 : lt % cycle;
+    if (!reduce) spots.forEach((_, i) => { const a = LEAD + i * STEP + 0.12; if (prevT < a && t >= a) sfx.pop(640 + i * 110); });
+    prevT = t;
     if (t < LEAD) tmp.copy(R).lerp(P[0], smooth(0.05, LEAD, t));
     else if (t < last) {
       const k = Math.floor((t - LEAD) / STEP);
@@ -789,9 +792,12 @@ export function buildWorlds() {
       root.add(s);
       return s;
     });
+    let prevPick = -1;
     W.pick = {
       group,
       update(t, dt, reduce) {
+        if (!reduce && prevPick < 1.0 && t >= 1.0) sfx.tada();
+        prevPick = t;
         blocks.forEach((b) => {
           const rise = reduce ? 1 : easeOutBack(smooth(b.delay, b.delay + 0.5, t));
           b.g.position.set(b.x, b.y - (1 - rise) * 1.6, 0);
