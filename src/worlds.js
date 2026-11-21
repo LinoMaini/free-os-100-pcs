@@ -2,7 +2,8 @@
 // Each world: { group, update(localTime, dt, reduce), onEnter? }. The stage scales them in and out.
 import * as THREE from 'three';
 import { COLORS } from './screens.js';
-import { lerp, smooth, clamp01, easeOutBack, PAL, toon, toonNew, part, rbox, outlineMat, makeLabel, sfx } from './kit.js';
+import { lerp, smooth, clamp01, easeOutBack, easeOutCubic, PAL, toon, toonNew, part, rbox, outlineMat, makeLabel, sfx } from './kit.js';
+import { UI_W, UI_H, drawMint, drawZorin, drawEndless } from './osui.js';
 
 const dummy = new THREE.Object3D();
 
@@ -61,7 +62,9 @@ function makeBadge(kind) {
 function makeMagnifier(ring = PAL.white) {
   const g = new THREE.Group();
   g.add(part(new THREE.TorusGeometry(0.36, 0.085, 14, 48), toon(ring), 0.022));
-  g.add(new THREE.Mesh(new THREE.CircleGeometry(0.36, 40), new THREE.MeshBasicMaterial({ color: '#CFF6FF', transparent: true, opacity: 0.4, depthWrite: false, toneMapped: false })));
+  const lens = new THREE.Mesh(new THREE.CircleGeometry(0.36, 40), new THREE.MeshBasicMaterial({ color: '#CFF6FF', transparent: true, opacity: 0.4, depthWrite: false, toneMapped: false }));
+  lens.renderOrder = 20;
+  g.add(lens);
   const h = part(rbox(0.17, 0.62, 0.17, 0.07), toon(PAL.ink), 0.02);
   h.position.set(0.55, -0.55, 0);
   h.rotation.z = Math.PI / 4;
@@ -172,6 +175,7 @@ function makeHourglass() {
   up.position.y = 0.24;
   const lo = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.28, 0.48, 28, 1, true), glass);
   lo.position.y = -0.24;
+  up.renderOrder = lo.renderOrder = 20;
   g.add(up, lo);
   return g;
 }
@@ -446,102 +450,182 @@ export function buildWorlds() {
     };
   }
 
-  // ---------- Linux Mint: the familiar desktop ----------
+  // ---------- the three desktops, drawn layer by layer ----------
+  // Scrolling through a section plays its desktop: windows and menus open, the pointer clicks,
+  // and the layers come apart in depth as the section arrives and leaves.
+  const SW = 3.84, SH = 2.4, PX = SW / UI_W;
+  const loc = (x, y) => [(x / UI_W - 0.5) * SW, (0.5 - y / UI_H) * SH];
+  const bump = (p, c, w) => Math.max(0, 1 - Math.abs(p - c) / w);
+  function uiLayer(parent, canvas, x, y, w, h, order, z, depth, { opaque = false, anchor = 'center' } = {}) {
+    const tex = new THREE.CanvasTexture(canvas);
+    tex.colorSpace = THREE.SRGBColorSpace;
+    tex.anisotropy = 8;
+    const mat = new THREE.MeshBasicMaterial({ map: tex, transparent: !opaque, depthWrite: opaque, toneMapped: false });
+    const mesh = new THREE.Mesh(new THREE.PlaneGeometry(w * PX, h * PX), mat);
+    mesh.renderOrder = order;
+    const pivot = new THREE.Group();
+    const [cx, cy] = loc(x + w / 2, y + h / 2);
+    if (anchor === 'bottom') { pivot.position.set(cx, cy - (h * PX) / 2, z); mesh.position.y = (h * PX) / 2; }
+    else if (anchor === 'tip') { const [tx, ty] = loc(x, y); pivot.position.set(tx, ty, z); mesh.position.set((w * PX) / 2, -(h * PX) / 2, 0); }
+    else pivot.position.set(cx, cy, z);
+    pivot.add(mesh);
+    parent.add(pivot);
+    return { pivot, mesh, mat, base: pivot.position.clone(), z, depth };
+  }
+  function screenFrame() {
+    const bezel = part(rbox(SW + 0.18, SH + 0.18, 0.12, 0.08), toon(PAL.ink), 0.022);
+    bezel.position.z = -0.07;
+    return bezel;
+  }
+  function pathAt(keys, p) {
+    if (p <= keys[0][0]) return [keys[0][1], keys[0][2]];
+    for (let i = 0; i < keys.length - 1; i++) {
+      const [p0, x0, y0] = keys[i], [p1, x1, y1] = keys[i + 1];
+      if (p <= p1) { const k = smooth(p0, p1, p); return [lerp(x0, x1, k), lerp(y0, y1, k)]; }
+    }
+    const l = keys[keys.length - 1];
+    return [l[1], l[2]];
+  }
+  const explodeAt = (p, reduce) => (reduce ? 0 : 1 - smooth(0.18, 0.36, p) + smooth(0.72, 0.9, p));
+  const setDepth = (l, ex) => { l.pivot.position.z = l.z + ex * l.depth; };
+  function placeCursor(cur, keys, p, t, clicks, reduce) {
+    const [x, y] = pathAt(keys, p);
+    const [lx, ly] = loc(x + (reduce ? 0 : Math.sin(t * 1.7) * 3), y + (reduce ? 0 : Math.cos(t * 1.3) * 2));
+    cur.pivot.position.x = lx;
+    cur.pivot.position.y = ly;
+    let s = 1;
+    for (const c of clicks) s -= 0.25 * bump(p, c, 0.012);
+    cur.pivot.scale.setScalar(s);
+  }
+
+  // ---------- Linux Mint (Cinnamon): open Files from the panel, then the menu ----------
   {
     const group = new THREE.Group();
     const root = new THREE.Group();
-    root.position.y = -0.2;
     group.add(root);
-    const plate = part(rbox(3.8, 2.4, 0.14, 0.12), toon(COLORS.mint));
-    plate.position.y = 0.1;
-    const bar = makeTaskbar(3.8, PAL.ink, COLORS.mint, [PAL.yellow, COLORS.zorin, PAL.pink]);
-    bar.position.set(0, -0.93, 0.14);
-    root.add(plate, bar);
-    const menu = new THREE.Group();
-    const menuBody = new THREE.Group();
-    menuBody.add(part(rbox(1.15, 1.3, 0.1, 0.06), toon(PAL.white)));
-    const head = part(rbox(1.15, 0.24, 0.12, 0.06), toon(COLORS.mint), 0.025);
-    head.position.y = 0.53;
-    menuBody.add(head);
-    [PAL.yellow, COLORS.zorin, PAL.pink, PAL.lilac].forEach((c, i) => {
-      const ic = new THREE.Mesh(rbox(0.14, 0.14, 0.04, 0.03), toon(c));
-      ic.position.set(-0.4, 0.25 - i * 0.23, 0.06);
-      const ln = new THREE.Mesh(rbox(0.6, 0.06, 0.03, 0.02), toon(PAL.grey));
-      ln.position.set(0.08, 0.25 - i * 0.23, 0.06);
-      menuBody.add(ic, ln);
-    });
-    menuBody.position.y = 0.65;
-    menu.add(menuBody);
-    menu.position.set(-1.2, -0.78, 0.48);
-    const winA = makeWindow(1.6, 1.05);
-    const winB = makeWindow(1.3, 0.85, PAL.ink, PAL.yellow);
-    winB.position.set(1.05, -0.2, 0.3);
-    const cursor = part(extrude(CURSOR, 0.07), toon(PAL.white), 0.02);
-    const people = makePeople([PAL.yellow, PAL.pink, COLORS.zorin, PAL.white, PAL.lilac], ['#F1C7A1', '#8D5A3B', '#D9A27A', '#5C3A24', '#F3D5B5']);
-    people.g.position.set(0.95, -1.5, 1.05);
+    const D = drawMint();
+    const scr = new THREE.Group();
+    scr.position.y = 0.08;
+    scr.add(screenFrame());
+    root.add(scr);
+    const wall = uiLayer(scr, D.wall, 0, 0, 1280, 800, 1, 0, 0, { opaque: true });
+    const panel = uiLayer(scr, D.panel, 0, 756, 1280, 44, 2, 0.01, 0.45);
+    const task = uiLayer(scr, D.taskBtn, 172, 760, 170, 36, 3, 0.015, 0.47);
+    const win = uiLayer(scr, D.win, 330, 110, 780, 480, 4, 0.02, 0.72);
+    const menu = uiLayer(scr, D.menu, 0, 276, 560, 480, 5, 0.03, 0.95, { anchor: 'bottom' });
+    const hi = uiLayer(scr, D.menuHi, 276, 382, 272, 32, 6, 0.035, 0);
+    menu.pivot.attach(hi.pivot);
+    const cur = uiLayer(scr, D.cursor, 1100, 600, 40, 56, 9, 0.06, 1.25, { anchor: 'tip' });
     const wifi = makeWifi();
-    wifi.position.set(1.72, 1.4, 0.55);
-    wifi.scale.setScalar(0.9);
-    root.add(menu, winA, winB, cursor, people.g, wifi);
+    wifi.position.set(1.55, 1.68, 0.45);
+    wifi.scale.setScalar(0.72);
+    const people = makePeople([PAL.yellow, PAL.pink, COLORS.zorin, PAL.white, PAL.lilac], ['#F1C7A1', '#8D5A3B', '#D9A27A', '#5C3A24', '#F3D5B5']);
+    people.g.position.set(0.8, -1.62, 0.9);
+    root.add(wifi, people.g);
+    const [mx, my] = loc(90, 690), [wx, wy] = loc(990, 150);
     const scan = analysis(root, [
-      { kind: 'check', at: [-1.2, 0.7, 1.0] },
-      { kind: 'check', at: [1.2, 1.1, 1.0] },
-      { kind: 'check', at: [1.45, -0.95, 1.4] },
-      { kind: 'cross', at: [1.72, 1.95, 0.95] },
+      { kind: 'check', at: [mx, my + 0.08, 1.0] },
+      { kind: 'check', at: [wx, wy + 0.08, 1.0] },
+      { kind: 'check', at: [1.32, -1.12, 1.3] },
+      { kind: 'cross', at: [1.55, 2.12, 0.9] },
     ]);
+    const KEYS = [[0.28, 1150, 640], [0.33, 66, 778], [0.4, 66, 778], [0.44, 24, 778], [0.48, 400, 398], [0.54, 400, 398], [0.58, 720, 132], [0.6, 720, 132], [0.7, 840, 162], [0.82, 1000, 420]];
     W.mint = {
       group,
-      update(t, dt, reduce) {
-        const m = reduce ? 0 : 1;
-        menu.scale.set(1, Math.max(easeOutBack(smooth(0.1, 0.6, reduce ? 1 : t)), 0.0001), 1);
-        winA.position.set(0.5, 0.45 + Math.sin(t * 1.2) * 0.05 * m, 0.62);
-        winA.rotation.y = -0.08 + Math.sin(t * 0.7) * 0.05 * m;
-        winB.position.y = -0.2 + Math.sin(t * 1.2 + 1.3) * 0.05 * m;
-        cursor.position.set(0.35 + Math.sin(t * 0.9) * 0.9 * m, 0.25 + Math.sin(t * 1.3) * 0.45 * m, 1.05);
-        people.update(reduce ? 0 : t);
+      pick: [wall.mesh],
+      screen: scr,
+      hover: false,
+      update(t, dt, reduce, p = 0.5) {
+        scr.scale.setScalar(lerp(scr.scale.x, this.hover ? 1.05 : 1, 0.2));
+        const ex = explodeAt(p, reduce);
+        const wnd = smooth(0.335, 0.41, p);
+        const mnu = smooth(0.44, 0.48, p) * (1 - smooth(0.55, 0.6, p));
+        const hov = smooth(0.475, 0.49, p) * (1 - smooth(0.54, 0.56, p));
+        const drag = smooth(0.6, 0.7, p);
+        [wall, panel, task, win, menu, cur].forEach((l) => setDepth(l, ex));
+        win.pivot.position.x = win.base.x + drag * 120 * PX;
+        win.pivot.position.y = win.base.y - drag * 30 * PX - (1 - wnd) * 0.4;
+        win.pivot.scale.setScalar(Math.max(lerp(0.5, 1, easeOutBack(wnd)), 0.0001));
+        win.mat.opacity = wnd;
+        win.pivot.visible = wnd > 0.01;
+        task.mat.opacity = wnd;
+        menu.pivot.scale.set(1, Math.max(easeOutBack(mnu), 0.0001), 1);
+        menu.mat.opacity = Math.min(1, mnu * 1.6);
+        menu.pivot.visible = mnu > 0.01;
+        hi.mat.opacity = hov;
+        placeCursor(cur, KEYS, p, t, [0.335, 0.44, 0.6], reduce);
         wifi.userData.arcs.forEach((a, i) => { a.visible = reduce || (t * 2) % 4 > i; });
+        people.update(reduce ? 0 : t);
         scan(t, reduce);
       },
     };
   }
 
-  // ---------- Zorin OS Lite: the light one ----------
+  // ---------- Zorin OS Lite (Xfce): the menu, then Files; the whole screen floats on balloons ----------
   {
     const group = new THREE.Group();
     const root = new THREE.Group();
-    root.position.y = -0.15;
+    root.position.y = -0.2;
     group.add(root);
-    const plate = part(rbox(3.8, 2.4, 0.14, 0.12), toon(COLORS.zorin));
-    const bar = makeTaskbar(3.8, PAL.white, COLORS.zorin, [PAL.yellow, PAL.pink, COLORS.mint]);
-    bar.position.set(0, -1.03, 0.14);
-    root.add(plate, bar);
+    const D = drawZorin();
     const light = new THREE.Group();
-    light.add(makeWindow(1.5, 0.95, PAL.ink, PAL.peach));
-    [[-0.5, 1.12, PAL.yellow], [0.02, 1.3, PAL.pink], [0.5, 1.08, PAL.white]].forEach(([x, y, c]) => {
-      const b = makeBalloon(c, y - 0.28 - 0.475);
-      b.position.set(x, y, 0);
-      light.add(b);
+    root.add(light);
+    const scr = new THREE.Group();
+    scr.add(screenFrame());
+    light.add(scr);
+    const wall = uiLayer(scr, D.wall, 0, 0, 1280, 800, 1, 0, 0, { opaque: true });
+    const panel = uiLayer(scr, D.panel, 0, 754, 1280, 46, 2, 0.01, 0.45);
+    const task = uiLayer(scr, D.taskBtn, 176, 759, 170, 36, 3, 0.015, 0.47);
+    const win = uiLayer(scr, D.win, 440, 96, 760, 470, 4, 0.02, 0.72);
+    const menu = uiLayer(scr, D.menu, 8, 222, 620, 520, 5, 0.03, 0.95, { anchor: 'bottom' });
+    const hi = uiLayer(scr, D.menuHi, 26, 344, 340, 40, 6, 0.035, 0);
+    menu.pivot.attach(hi.pivot);
+    const cur = uiLayer(scr, D.cursor, 1100, 600, 40, 56, 9, 0.06, 1.25, { anchor: 'tip' });
+    [[-1.2, 1.8, PAL.yellow], [0.1, 1.98, PAL.pink], [1.25, 1.78, PAL.white]].forEach(([x, y, c]) => {
+      const bl = makeBalloon(c, y - 0.28 - 1.3);
+      bl.position.set(x, y, 0);
+      light.add(bl);
     });
-    light.position.set(0.25, 0.05, 0.62);
     const hour = makeHourglass();
-    hour.position.set(-1.45, 0.45, 0.75);
-    hour.scale.setScalar(0.9);
+    hour.position.set(-1.62, -1.62, 0.6);
+    hour.scale.setScalar(0.55);
     const wifi = makeWifi();
-    wifi.position.set(1.72, 1.3, 0.55);
-    wifi.scale.setScalar(0.9);
-    root.add(light, hour, wifi);
+    wifi.position.set(1.62, -1.72, 0.45);
+    wifi.scale.setScalar(0.62);
+    root.add(hour, wifi);
+    const [mx, my] = loc(160, 600);
     const scan = analysis(root, [
-      { kind: 'check', at: [0.8, 1.62, 1.1] },
-      { kind: 'check', at: [-1.15, -0.62, 0.95] },
-      { kind: 'cross', at: [-1.45, 1.2, 1.15] },
-      { kind: 'cross', at: [1.72, 1.85, 0.95] },
+      { kind: 'check', at: [0.1, 2.32, 0.9] },
+      { kind: 'check', at: [mx, my, 1.0] },
+      { kind: 'cross', at: [-1.62, -1.08, 1.0] },
+      { kind: 'cross', at: [1.62, -1.16, 0.95] },
     ]);
+    const KEYS = [[0.28, 1150, 640], [0.36, 26, 777], [0.4, 26, 777], [0.46, 200, 364], [0.54, 200, 364], [0.62, 760, 300], [0.82, 1000, 420]];
     W.zorin = {
       group,
-      update(t, dt, reduce) {
+      pick: [wall.mesh],
+      screen: scr,
+      hover: false,
+      update(t, dt, reduce, p = 0.5) {
         const m = reduce ? 0 : 1;
-        light.position.y = 0.05 + (Math.sin(t * 1.3) * 0.1 + 0.04) * m;
-        light.rotation.z = Math.sin(t * 0.9) * 0.04 * m;
+        light.position.y = (Math.sin(t * 1.3) * 0.08 + 0.03) * m;
+        light.rotation.z = Math.sin(t * 0.9) * 0.025 * m;
+        scr.scale.setScalar(lerp(scr.scale.x, this.hover ? 1.05 : 1, 0.2));
+        const ex = explodeAt(p, reduce);
+        const mnu = smooth(0.37, 0.43, p) * (1 - smooth(0.55, 0.6, p));
+        const hov = smooth(0.45, 0.47, p) * (1 - smooth(0.55, 0.57, p));
+        const wnd = smooth(0.555, 0.63, p);
+        [wall, panel, task, win, menu, cur].forEach((l) => setDepth(l, ex));
+        win.pivot.position.y = win.base.y - (1 - wnd) * 0.4;
+        win.pivot.scale.setScalar(Math.max(lerp(0.5, 1, easeOutBack(wnd)), 0.0001));
+        win.mat.opacity = wnd;
+        win.pivot.visible = wnd > 0.01;
+        task.mat.opacity = wnd;
+        menu.pivot.scale.set(1, Math.max(easeOutBack(mnu), 0.0001), 1);
+        menu.mat.opacity = Math.min(1, mnu * 1.6);
+        menu.pivot.visible = mnu > 0.01;
+        hi.mat.opacity = hov;
+        placeCursor(cur, KEYS, p, t, [0.37, 0.555], reduce);
         const fl = Math.floor(t / 3);
         hour.rotation.z = reduce ? 0 : Math.PI * (fl + smooth(2.4, 3.0, t - fl * 3));
         wifi.userData.arcs.forEach((a, i) => { a.visible = reduce || (t * 2) % 4 > i; });
@@ -550,67 +634,84 @@ export function buildWorlds() {
     };
   }
 
-  // ---------- Endless OS: the offline one ----------
+  // ---------- Endless OS: the phone-like home screen, then the offline encyclopedia ----------
   {
     const group = new THREE.Group();
     const root = new THREE.Group();
-    root.position.y = -0.12;
     group.add(root);
-    const plate = part(rbox(3.8, 2.4, 0.14, 0.12), toon(COLORS.endless));
-    plate.position.y = 0.05;
-    const search = part(rbox(1.7, 0.22, 0.08, 0.06), toon(PAL.white), 0.02);
-    search.position.set(-0.45, 0.95, 0.12);
-    root.add(plate, search);
-    const tileGeo = rbox(0.42, 0.42, 0.14, 0.1);
-    const tiles = new THREE.InstancedMesh(tileGeo, toonNew(PAL.white), 12);
-    const tileLines = new THREE.InstancedMesh(tileGeo, outlineMat(0.02), 12);
-    tiles.frustumCulled = tileLines.frustumCulled = false;
-    [PAL.yellow, PAL.pink, COLORS.zorin, PAL.white, COLORS.mint, PAL.lilac, PAL.cyan, PAL.red, PAL.white, PAL.yellow, PAL.ink, PAL.pink]
-      .forEach((c, i) => tiles.setColorAt(i, new THREE.Color(c)));
-    root.add(tileLines, tiles);
-    const books = makeBooks([PAL.red, COLORS.zorin, PAL.yellow]);
-    books.position.set(1.25, -0.95, 0.55);
+    const D = drawEndless();
+    const scr = new THREE.Group();
+    scr.position.y = 0.05;
+    scr.add(screenFrame());
+    root.add(scr);
+    const wall = uiLayer(scr, D.wall, 0, 0, 1280, 800, 1, 0, 0, { opaque: true });
+    const search = uiLayer(scr, D.search, 340, 50, 600, 56, 3, 0.012, 0.5);
+    const iconHi = uiLayer(scr, D.iconHi, 140, 200, 150, 160, 2, 0.008, 0.55);
+    const icons = D.icons.map((cv, i) => uiLayer(scr, cv, 140 + (i % 6) * 170, 200 + Math.floor(i / 6) * 200, 150, 160, 3, 0.012, 0.5 + (i % 6) * 0.06));
+    const panel = uiLayer(scr, D.panel, 0, 752, 1280, 48, 4, 0.01, 0.4);
+    const win = uiLayer(scr, D.win, 100, 64, 1080, 640, 6, 0.03, 0.85);
+    const cur = uiLayer(scr, D.cursor, 1100, 600, 40, 56, 9, 0.06, 1.25, { anchor: 'tip' });
     const wifi = makeWifi();
     const slash = part(rbox(1.0, 0.1, 0.08, 0.04), toon(PAL.red), 0.02);
     slash.position.set(0, 0.32, 0.12);
     slash.rotation.z = -Math.PI / 4;
     wifi.add(slash);
-    wifi.position.set(1.3, 0.55, 0.45);
-    wifi.scale.setScalar(0.85);
-    const shield = makeShield();
-    shield.position.set(-1.9, -0.95, 0.85);
-    shield.scale.setScalar(0.9);
-    const usb = makeUsb();
-    usb.position.set(1.95, -0.15, 0.95);
+    wifi.position.set(1.7, 1.62, 0.4);
+    wifi.scale.setScalar(0.62);
     const arrow = part(extrude(ARROW, 0.14), toon(PAL.white), 0.022);
-    arrow.position.set(-1.95, 1.2, 0.65);
-    arrow.scale.setScalar(0.85);
-    root.add(books, wifi, shield, usb, arrow);
+    arrow.position.set(-1.75, 1.7, 0.45);
+    arrow.scale.setScalar(0.58);
+    const shield = makeShield();
+    shield.position.set(-1.7, -1.68, 0.6);
+    shield.scale.setScalar(0.6);
+    const books = makeBooks([PAL.red, COLORS.zorin, PAL.yellow]);
+    books.position.set(1.45, -1.9, 0.45);
+    books.scale.setScalar(0.75);
+    const usb = makeUsb();
+    usb.position.set(0.35, -1.72, 0.7);
+    root.add(wifi, arrow, shield, books, usb);
+    const [gx, gy] = loc(215, 210);
     const scan = analysis(root, [
-      { kind: 'check', at: [-0.45, 0.62, 0.8] },
-      { kind: 'check', at: [1.3, 1.3, 0.85] },
-      { kind: 'check', at: [1.25, -0.3, 1.05] },
-      { kind: 'check', at: [-1.9, -0.45, 1.2] },
-      { kind: 'cross', at: [-1.95, 1.8, 0.95] },
+      { kind: 'check', at: [gx, gy, 1.0] },
+      { kind: 'check', at: [1.7, 2.12, 0.85] },
+      { kind: 'check', at: [1.45, -1.3, 1.0] },
+      { kind: 'check', at: [-1.7, -1.18, 1.0] },
+      { kind: 'cross', at: [-1.75, 2.16, 0.9] },
     ]);
+    const KEYS = [[0.28, 1150, 640], [0.42, 700, 430], [0.47, 225, 268], [0.55, 225, 268], [0.62, 520, 320], [0.82, 900, 400]];
+    const [icx, icy] = loc(215, 280);
     W.endless = {
       group,
-      update(t, dt, reduce) {
-        for (let i = 0; i < 12; i++) {
-          const c = i % 4, r = Math.floor(i / 4);
-          const pop = reduce ? 1 : easeOutBack(smooth(0.1 + (c + r) * 0.08, 0.5 + (c + r) * 0.08, t));
-          const hop = reduce ? 0 : Math.max(0, Math.sin(t * 3 - (c + r) * 0.6)) * 0.16;
-          dummy.position.set(-1.25 + c * 0.54, 0.48 - r * 0.52, 0.2 + hop);
-          dummy.rotation.set(0, 0, 0);
-          dummy.scale.setScalar(Math.max(pop, 0.0001));
-          dummy.updateMatrix();
-          tiles.setMatrixAt(i, dummy.matrix);
-          tileLines.setMatrixAt(i, dummy.matrix);
-        }
-        tiles.instanceMatrix.needsUpdate = tileLines.instanceMatrix.needsUpdate = true;
+      pick: [wall.mesh],
+      screen: scr,
+      hover: false,
+      update(t, dt, reduce, p = 0.5) {
+        scr.scale.setScalar(lerp(scr.scale.x, this.hover ? 1.05 : 1, 0.2));
+        const ex = explodeAt(p, reduce);
+        [wall, search, iconHi, panel, win, cur, ...icons].forEach((l) => setDepth(l, ex));
+        const srch = smooth(0.24, 0.32, p);
+        search.pivot.position.y = search.base.y + (1 - srch) * 0.4;
+        search.mat.opacity = srch;
+        const hov = smooth(0.46, 0.48, p) * (1 - smooth(0.55, 0.57, p));
+        icons.forEach((l, i) => {
+          const k = smooth(0.26 + i * 0.012, 0.31 + i * 0.012, p);
+          const s = easeOutBack(k) * (i === 0 ? 1 + hov * 0.12 : 1);
+          l.pivot.scale.setScalar(Math.max(s, 0.0001));
+          l.mat.opacity = Math.min(1, k * 2);
+        });
+        iconHi.mat.opacity = hov;
+        iconHi.pivot.scale.copy(icons[0].pivot.scale);
+        const wnd = smooth(0.555, 0.64, p);
+        const e = easeOutCubic(wnd);
+        win.pivot.position.x = lerp(icx, win.base.x, e);
+        win.pivot.position.y = lerp(icy, win.base.y, e);
+        win.pivot.scale.setScalar(Math.max(lerp(0.12, 1, e), 0.0001));
+        win.mat.opacity = Math.min(1, wnd * 2);
+        win.pivot.visible = wnd > 0.01;
+        placeCursor(cur, KEYS, p, t, [0.555], reduce);
         const m = reduce ? 0 : 1;
         usb.rotation.y = t * 1.2 * m;
-        arrow.position.y = 1.2 - Math.abs(Math.sin(t * 2.2)) * 0.12 * m;
+        arrow.position.y = 1.7 - Math.abs(Math.sin(t * 2.2)) * 0.1 * m;
         books.rotation.y = Math.sin(t * 0.8) * 0.15 * m;
         scan(t, reduce);
       },

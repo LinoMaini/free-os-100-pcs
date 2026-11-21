@@ -26,21 +26,58 @@ const setSrgb = (v, hex = PAL.yellow) => {
 const BG_FRAG = `varying vec2 vUv;
 uniform vec2 uRes, uCenter;
 uniform vec3 uColA, uColB;
-uniform float uWipe, uSpin, uParty, uTime;
+uniform float uWipe, uSpin, uParty, uTime, uBeat, uChaos;
 vec3 hsv(float h){ vec3 p = abs(fract(h + vec3(0.0, 2.0 / 3.0, 1.0 / 3.0)) * 6.0 - 3.0); return mix(vec3(1.0), clamp(p - 1.0, 0.0, 1.0), 0.55); }
+vec3 toLinear(vec3 c){ return mix(c / 12.92, pow((c + 0.055) / 1.055, vec3(2.4)), step(0.04045, c)); }
 void main(){
   vec2 p = vUv * uRes, d = p - uCenter * uRes;
-  float r = length(d), R = length(uRes);
-  float edge = uWipe * R * 1.08;
-  vec3 col = mix(uColA, uColB, 1.0 - smoothstep(edge - 1.5, edge + 1.5, r));
-  float ring = (1.0 - smoothstep(1.5, 5.0, abs(r - edge))) * step(0.002, uWipe) * step(uWipe, 0.998);
-  col = mix(col, hsv(fract(uTime * 0.22 + r / R * 0.7)), uParty * 0.85);
-  float rays = step(0.5, fract(atan(d.y, d.x) / 6.2831853 * 18.0 + uSpin));
-  col = mix(col, mix(col, vec3(1.0), 0.17), rays * smoothstep(70.0, 280.0, r));
+  float r = length(d), R = length(uRes), a = atan(d.y, d.x);
+  float star = r * (1.0 + 0.28 * cos(5.0 * (a + uTime * 0.6)));
+  float edge = uWipe * R * 1.3;
+  vec3 col = mix(uColA, uColB, 1.0 - smoothstep(edge - 1.5, edge + 1.5, star));
+  float ring = (1.0 - smoothstep(2.0, 7.0, abs(star - edge))) * step(0.002, uWipe) * step(uWipe, 0.998);
+  col = mix(col, hsv(fract(uTime * 0.22 + r / R * 0.7)), max(uParty, uChaos) * 0.85);
+  float swirl = sin(r * 0.012 - uTime * 1.6) * (0.35 + uChaos * 0.6);
+  float rays = step(0.5, fract(a / 6.2831853 * 18.0 + uSpin + swirl));
+  col = mix(col, mix(col, vec3(1.0), 0.17 + uBeat * 0.1), rays * smoothstep(70.0, 280.0, r));
   vec2 g = mod(p, 18.0) - 9.0;
-  float dr = 3.3 * smoothstep(0.22, 0.9, r / R);
+  float dr = (3.3 + uBeat * 2.4) * smoothstep(0.22, 0.9, r / R);
   col = mix(col, col * 0.84, 1.0 - smoothstep(dr - 0.7, dr + 0.7, length(g)));
-  gl_FragColor = vec4(mix(col, vec3(0.0), ring * 0.9), 1.0);
+  gl_FragColor = vec4(toLinear(mix(col, vec3(0.0), ring * 0.9)), 1.0);
+}`;
+
+// Post-processing over the whole canvas: fisheye in the dive, click shockwaves, glitch slices,
+// colour fringes that grow with scroll speed, film grain and faint scanlines.
+const POST_FRAG = `uniform sampler2D tDiffuse;
+uniform vec2 uRes;
+uniform float uTime, uAberr, uBarrel, uGlitch, uGrain, uScan;
+uniform vec4 uRipples[6];
+varying vec2 vUv;
+float hash(vec2 p){ return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }
+void main(){
+  vec2 uv = vUv, c = uv - 0.5;
+  uv = 0.5 + c * (1.0 + uBarrel * dot(c, c) * 1.8) / (1.0 + uBarrel * 0.45);
+  float asp = uRes.x / uRes.y;
+  for (int i = 0; i < 6; i++) {
+    vec4 rp = uRipples[i];
+    float age = uTime - rp.z;
+    if (rp.w > 0.0 && age > 0.0 && age < 1.4) {
+      vec2 d = (uv - rp.xy) * vec2(asp, 1.0);
+      float dist = length(d);
+      float w = exp(-pow((dist - age * 0.9) * 16.0, 2.0)) * (1.0 - age / 1.4) * rp.w;
+      uv -= (d / max(dist, 1e-4)) * w * 0.04 / vec2(asp, 1.0);
+    }
+  }
+  if (uGlitch > 0.0) {
+    float tick = floor(uTime * 18.0), band = floor(uv.y * 24.0);
+    if (hash(vec2(band, tick)) < uGlitch * 0.35) uv.x += (hash(vec2(band * 1.7, tick + 3.1)) - 0.5) * 0.14 * uGlitch;
+  }
+  vec2 dir = (uv - 0.5) * uAberr * 2.0;
+  vec3 col = vec3(texture2D(tDiffuse, uv + dir).r, texture2D(tDiffuse, uv).g, texture2D(tDiffuse, uv - dir).b);
+  col += (hash(vUv * uRes + fract(uTime * 7.0) * 113.0) - 0.5) * uGrain;
+  col *= 1.0 - uScan * (0.5 + 0.5 * sin(vUv.y * uRes.y * 2.0));
+  gl_FragColor = vec4(max(col, 0.0), 1.0);
+  #include <colorspace_fragment>
 }`;
 
 export function createStage(canvas, scenes, sections, opts = {}) {
@@ -65,7 +102,7 @@ export function createStage(canvas, scenes, sections, opts = {}) {
   const bgU = {
     uRes: { value: new THREE.Vector2(1, 1) }, uCenter: { value: new THREE.Vector2(0.5, 0.5) },
     uColA: { value: new THREE.Vector3(1, 0.88, 0.3) }, uColB: { value: new THREE.Vector3(1, 0.88, 0.3) },
-    uWipe: { value: 0 }, uSpin: { value: 0 }, uParty: { value: 0 }, uTime: { value: 0 },
+    uWipe: { value: 0 }, uSpin: { value: 0 }, uParty: { value: 0 }, uTime: { value: 0 }, uBeat: { value: 0 }, uChaos: { value: 0 },
   };
   const bgScene = new THREE.Scene();
   const bgQuad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), new THREE.ShaderMaterial({
@@ -75,6 +112,22 @@ export function createStage(canvas, scenes, sections, opts = {}) {
   bgQuad.frustumCulled = false;
   bgScene.add(bgQuad);
   const bgCam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+  const postU = {
+    tDiffuse: { value: null }, uRes: { value: new THREE.Vector2(1, 1) }, uTime: { value: 0 },
+    uAberr: { value: 0 }, uBarrel: { value: 0 }, uGlitch: { value: 0 }, uGrain: { value: 0 }, uScan: { value: 0 },
+    uRipples: { value: Array.from({ length: 6 }, () => new THREE.Vector4(0, 0, -10, 0)) },
+  };
+  const postScene = new THREE.Scene();
+  const postQuad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), new THREE.ShaderMaterial({
+    uniforms: postU, fragmentShader: POST_FRAG, depthTest: false, depthWrite: false,
+    vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }',
+  }));
+  postQuad.frustumCulled = false;
+  postScene.add(postQuad);
+  const mainRT = new THREE.WebGLRenderTarget(1, 1, { samples: 4 });
+  postU.tDiffuse.value = mainRT.texture;
+  const dbs = new THREE.Vector2();
+  const easeInOutCubic = (t) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2);
 
   // Click on an empty spot: a handful of chunky cubes explodes out of it.
   function makeBurstPool(parent) {
@@ -217,7 +270,8 @@ export function createStage(canvas, scenes, sections, opts = {}) {
   ]);
   const crowdBody = new THREE.InstancedMesh(miniGeo, toon(COLORS.paper), crowdN);
   const crowdLine = new THREE.InstancedMesh(miniGeo, outlineMat(0.03), crowdN);
-  const crowdScr = new THREE.InstancedMesh(new THREE.PlaneGeometry(0.88, 0.54).translate(0, 0.66, 0.047), new THREE.MeshBasicMaterial({ toneMapped: false }), crowdN);
+  const miniScrGeo = new THREE.PlaneGeometry(0.88, 0.54).translate(0, 0.66, 0.047);
+  const crowdScr = new THREE.InstancedMesh(miniScrGeo, new THREE.MeshBasicMaterial({ toneMapped: false }), crowdN);
   for (const m of [crowdBody, crowdLine, crowdScr]) m.frustumCulled = false;
   rig.add(crowdLine, crowdBody, crowdScr);
   const spots = [];
@@ -230,6 +284,20 @@ export function createStage(canvas, scenes, sections, opts = {}) {
   const crowd = spots.slice(0, crowdN).map((s, i) => ({ ...s, ry: (((i * 37) % 11) / 11 - 0.5) * 0.3 }));
   const darkC = new THREE.Color('#262626'), litC = new THREE.Color(COLORS.endless), flashC = new THREE.Color(PAL.white), tmpC = new THREE.Color();
   let installT = 0;
+  const waveCols = [COLORS.endless, PAL.yellow, PAL.pink, PAL.cyan, PAL.white, PAL.lime, PAL.lilac].map((c) => new THREE.Color(c));
+
+  // a rain of small PCs behind the hero (and everywhere in party and chaos mode)
+  const RN = 32;
+  const rainBody = new THREE.InstancedMesh(miniGeo, toon(COLORS.paper), RN);
+  const rainLine = new THREE.InstancedMesh(miniGeo, outlineMat(0.03), RN);
+  const rainScr = new THREE.InstancedMesh(miniScrGeo, new THREE.MeshBasicMaterial({ toneMapped: false }), RN);
+  for (const m of [rainBody, rainLine, rainScr]) m.frustumCulled = false;
+  scene.add(rainLine, rainBody, rainScr);
+  const rainCols = [COLORS.mint, COLORS.zorin, COLORS.endless, PAL.pink, PAL.yellow, PAL.cyan, PAL.lilac];
+  const rain = Array.from({ length: RN }, (_, i) => {
+    rainScr.setColorAt(i, new THREE.Color(rainCols[i % rainCols.length]));
+    return { x: (((i * 0.618) % 1) - 0.5) * 18, z: -3 - ((i * 0.37) % 1) * 6, y: ((i * 0.73) % 1) * 13 - 6, sp: 1.4 + ((i * 0.29) % 1) * 1.8, r: i * 1.7, s: 0.5 + ((i * 0.41) % 1) * 0.5, k: 1 };
+  });
 
   const outFloat = makeFloaters(scene, { colors: [PAL.pink, PAL.lilac, PAL.sky, COLORS.mint, COLORS.zorin, COLORS.endless, PAL.white], seed: 7 });
   const outConf = makeConfetti(rig, [0, 0.2, 0.6]);
@@ -281,12 +349,15 @@ export function createStage(canvas, scenes, sections, opts = {}) {
 
   // ======================= layout and scroll =======================
   let W = 1, H = 1, mobile = false, baseDist = 14;
-  let centers = [];
+  let centers = [], rects = [];
+  const worldSec = {};
+  sections.forEach((el, k) => { const sc = scenes[el.dataset.scene]; if (sc && sc.inside) worldSec[sc.inside] = k; });
   function measure() {
-    centers = sections.map((el) => {
+    rects = sections.map((el) => {
       const r = el.getBoundingClientRect();
-      return r.top + window.scrollY + r.height / 2;
+      return [r.top + window.scrollY, r.height];
     });
+    centers = rects.map(([top, h]) => top + h / 2);
   }
   function resize() {
     W = window.innerWidth;
@@ -294,6 +365,9 @@ export function createStage(canvas, scenes, sections, opts = {}) {
     mobile = W < 820 || W / H < 0.9;
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
     renderer.setSize(W, H, false);
+    renderer.getDrawingBufferSize(dbs);
+    mainRT.setSize(dbs.x, dbs.y);
+    postU.uRes.value.set(W, H);
     camera.aspect = W / H;
     const tan = Math.tan((camera.fov * Math.PI) / 360) * 2;
     const fw = mobile ? 0.86 : 0.37, fh = mobile ? 0.36 : 0.62;
@@ -347,6 +421,8 @@ export function createStage(canvas, scenes, sections, opts = {}) {
 
   let lastDominant = null, lastHex = '', lastFlash = -1, lastFlashHex = '', portalOn = false;
   let lastSY = window.scrollY, vel = 0, spin = 0, party = 0, partyOn = false, partyT = 0, introT = reduce ? 99 : 0, prevDv = 0, lastBurst = -1, lastInside = false;
+  let chaos = 0, chaosOn = false, glitchT = 0, flipT = 1, ripIdx = 0, orbitA = 0, beatPulse = 0;
+  const osBox = new THREE.Box3(), osV = new THREE.Vector3();
   const lastLook = new THREE.Vector3(), ray = new THREE.Raycaster(), ndc = new THREE.Vector2(), plane = new THREE.Plane(), hitV = new THREE.Vector3(), dirV = new THREE.Vector3();
   let time = 0, lastT = performance.now();
   function frame(now = performance.now()) {
@@ -365,7 +441,12 @@ export function createStage(canvas, scenes, sections, opts = {}) {
     lastSY = sy;
     introT += dt;
     party = lerp(party, partyOn ? 1 : 0, 1 - Math.exp(-dt * 3));
-    if (!reduce) spin += dt * (0.025 + party * 0.6) + vel * 0.0006 * dt;
+    chaos = lerp(chaos, chaosOn ? 1 : 0, 1 - Math.exp(-dt * 3));
+    if (!reduce) spin += dt * (0.025 + party * 0.6 + chaos * 1.2) + vel * 0.0006 * dt;
+    const bp = sfx.beat();
+    beatPulse = reduce ? 0 : Math.max(party, chaos) * Math.pow(1 - (bp >= 0 ? bp : (time * 2) % 1), 4);
+    glitchT = Math.max(0, glitchT - dt);
+    if (!reduce && chaos > 0.5 && Math.random() < dt * 1.2) glitchT = 0.25;
     if (!reduce && (prevDv - 0.5) * (dv - 0.5) < 0) sfx.whoosh();
     prevDv = dv;
     if (party > 0.5 && !reduce) { partyT += dt; if (partyT > 0.9) { partyT = 0; (insideNow ? inConf : outConf).burst(); } }
@@ -391,6 +472,7 @@ export function createStage(canvas, scenes, sections, opts = {}) {
 
     const dominant = tg.e < 0.5 ? tg.a : tg.b;
     if (dominant.confetti && lastDominant !== dominant && !reduce) (dominant.inside ? inConf : outConf).burst();
+    if (lastDominant && lastDominant !== dominant && !reduce) glitchT = 0.35;
     lastDominant = dominant;
 
     // ---------- outside ----------
@@ -410,13 +492,20 @@ export function createStage(canvas, scenes, sections, opts = {}) {
         const slap = reduce ? 1 : easeOutBack(clamp01((introT - 1.15 - n * 0.16) / 0.35));
         stickers[key].scale.setScalar(Math.max(slap, 0.0001));
       });
-      for (const key of Object.keys(stickers)) {
+      orbitA += reduce ? 0 : dt * (0.35 + party * 0.5 + chaos * 1.6 + Math.min(1, Math.abs(vel) / 2500) * 1.2);
+      Object.keys(stickers).forEach((key, n) => {
         const h = HOME[key], g = stickers[key];
         const bob = reduce ? 0 : Math.sin(time * 1.3 + key.length) * 0.06;
-        g.position.set(h.p[0] * (1 + blow * 2.2), (h.p[1] + bob) * (1 + blow * 1.6), h.p[2] + blow * 2);
-        g.rotation.set(0, reduce ? 0 : Math.sin(time * 0.8 + key.length) * 0.12, h.r + blow * h.r * 4);
-      }
-      pc.position.y = (reduce ? 0 : Math.sin(time * 1.1) * 0.04 * (1 - blow)) + drop * 7;
+        const a = orbitA + (n * Math.PI) / 2;
+        const ox = reduce ? h.p[0] : Math.cos(a) * 2.05, oy = reduce ? h.p[1] : Math.sin(a) * 1.4 + 0.15, oz = reduce ? h.p[2] : 0.95 + Math.sin(a * 2) * 0.3;
+        g.position.set(ox * (1 + blow * 2.2), (oy + bob) * (1 + blow * 1.6), oz + blow * 2);
+        g.rotation.set(0, reduce ? 0 : Math.sin(time * 0.8 + key.length) * 0.12, h.r + blow * h.r * 4 + (reduce ? 0 : Math.sin(a) * 0.15));
+      });
+      if (flipT < 1) flipT = Math.min(1, flipT + dt / 0.9);
+      const fp = easeInOutCubic(flipT);
+      pc.rotation.x = flipT < 1 ? -fp * Math.PI * 2 : 0;
+      pc.rotation.z = reduce ? 0 : Math.sin(time * 3) * 0.15 * chaos;
+      pc.position.y = (reduce ? 0 : Math.sin(time * 1.1) * 0.04 * (1 - blow)) + drop * 7 + Math.sin(fp * Math.PI) * 1.8;
       shadow.scale.set(3.1 * (1 - drop * 0.7), 1.6 * (1 - drop * 0.7), 1);
 
       // the other 99 PCs pop up in a ripple, then light up orange one after another
@@ -431,20 +520,45 @@ export function createStage(canvas, scenes, sections, opts = {}) {
           const since = installT - th;
           const lit = cur.lit > 0.5 && since > 0;
           const bump = lit && since < 0.3 ? 1 + Math.sin((since / 0.3) * Math.PI) * 0.18 : 1;
-          dummy.position.set(c.x, -1.93, c.z);
-          dummy.rotation.set(0, c.ry, 0);
+          const hop = reduce ? 0 : Math.max(0, Math.sin(time * 5 - c.d * 0.7)) * (lit ? 0.3 + chaos * 0.5 : chaos * 0.4);
+          dummy.position.set(c.x, -1.93 + hop, c.z);
+          dummy.rotation.set(0, c.ry + (reduce ? 0 : chaos * Math.sin(time * 4 + c.d) * 0.6), 0);
           dummy.scale.setScalar(Math.max(pop * bump, 0.0001));
           dummy.updateMatrix();
           crowdBody.setMatrixAt(i, dummy.matrix);
           crowdLine.setMatrixAt(i, dummy.matrix);
           crowdScr.setMatrixAt(i, dummy.matrix);
-          crowdScr.setColorAt(i, lit ? (since < 0.15 && !reduce ? flashC : litC) : darkC);
+          const NW = waveCols.length;
+          crowdScr.setColorAt(i, !lit ? darkC : since < 0.15 && !reduce ? flashC : since > 0.8 && !reduce ? waveCols[((Math.floor(time * 3 - c.d * 0.5) % NW) + NW) % NW] : litC);
         });
         crowdBody.instanceMatrix.needsUpdate = crowdLine.instanceMatrix.needsUpdate = crowdScr.instanceMatrix.needsUpdate = true;
         crowdScr.instanceColor.needsUpdate = true;
       }
       // keep the shapes out from behind the hero text (left half on a computer, top half on a phone)
       const heroW = (tg.a === scenes.top ? 1 - tg.e : 0) + (tg.b === scenes.top ? tg.e : 0);
+      const inTextZone = (p) => {
+        probe.copy(p).project(camera);
+        const sx = (probe.x + 1) / 2, sy = (1 - probe.y) / 2;
+        return mobile ? sy < 0.66 : sx < 0.58;
+      };
+      const rainShow = reduce ? 0 : clamp01(heroW + party + chaos) * (1 - blow);
+      rainBody.visible = rainLine.visible = rainScr.visible = rainShow > 0.01;
+      if (rainShow > 0.01) {
+        rain.forEach((r, i) => {
+          r.y -= dt * r.sp * (1 + chaos * 1.5);
+          if (r.y < -6.5) r.y += 13;
+          r.r += dt * (1 + chaos * 2);
+          dummy.position.set(r.x, r.y, r.z);
+          r.k = lerp(r.k, heroW > 0.01 && party + chaos < 0.5 && inTextZone(dummy.position) ? 1 - heroW : 1, 0.12);
+          dummy.rotation.set(r.r, r.r * 0.7, r.r * 0.3);
+          dummy.scale.setScalar(Math.max(r.s * rainShow * r.k, 0.0001));
+          dummy.updateMatrix();
+          rainBody.setMatrixAt(i, dummy.matrix);
+          rainLine.setMatrixAt(i, dummy.matrix);
+          rainScr.setMatrixAt(i, dummy.matrix);
+        });
+        rainBody.instanceMatrix.needsUpdate = rainLine.instanceMatrix.needsUpdate = rainScr.instanceMatrix.needsUpdate = true;
+      }
       outFloat.update(reduce ? 0 : time, (1 - blow) * (reduce ? 1 : smooth(1.0, 2.2, introT)), heroW < 0.01 ? null : (p) => {
         probe.copy(p).project(camera);
         const sx = (probe.x + 1) / 2, sy = (1 - probe.y) / 2;
@@ -470,7 +584,10 @@ export function createStage(canvas, scenes, sections, opts = {}) {
         w.group.scale.setScalar(Math.max(easeOutBack(clamp01(w.p)), 0.0001));
         w.group.position.y = (1 - w.p) * -0.9;
         w.group.rotation.y = (1 - w.p) * 0.8;
-        w.update(time - w.t0, dt, reduce);
+        const k = worldSec[name];
+        const raw = k === undefined || !rects[k] ? 0.5 : clamp01((window.scrollY + H * 0.5 - rects[k][0]) / rects[k][1]);
+        w.sp = w.sp === undefined ? raw : lerp(w.sp, raw, 1 - Math.exp(-dt * 10));
+        w.update(time - w.t0, dt, reduce, w.sp);
       }
     }
     if (dv > 0.002) {
@@ -493,15 +610,16 @@ export function createStage(canvas, scenes, sections, opts = {}) {
     camera.fov = 30 + 46 * kick * kick;
     let roll = reduce ? 0 : Math.PI * 2 * smooth(0.12, 0.88, dv);
     if (!reduce && tg.a.inside && tg.b.inside && tg.a !== tg.b) roll += Math.sin(Math.PI * tg.e) * 0.2 * (tg.idx % 2 ? -1 : 1);
-    if (!reduce) roll += party * Math.sin(time * 3.1) * 0.14;
+    if (!reduce) roll += party * Math.sin(time * 3.1) * 0.14 + chaos * (time * 0.45 + Math.sin(time * 2.3) * 0.2);
     const sq = reduce ? 0 : Math.min(1, Math.abs(vel) / 2500);
-    const beat = reduce ? 1 : 1 + party * 0.08 * Math.pow(Math.max(0, Math.sin(time * Math.PI * 4)), 4);
+    const beat = 1 + beatPulse * 0.09;
     rig.scale.set((1 - sq * 0.07) * beat, (1 + sq * 0.14) * beat, (1 - sq * 0.07) * beat);
     inRig.scale.copy(rig.scale);
     rig.rotation.y = cur.px * 0.14 * (1 - smooth(0, 0.25, dv));
     rig.rotation.x = cur.py * 0.05 * (1 - smooth(0, 0.25, dv));
     inRig.rotation.y = cur.px * 0.12 * smooth(0.75, 1, dv);
     inRig.rotation.x = cur.py * 0.05 * smooth(0.75, 1, dv);
+    inRig.rotation.z = reduce ? 0 : Math.sin(time * 1.7) * 0.25 * chaos;
     if (!insideNow) {
       rig.updateMatrixWorld();
       screenPos.set(0, pc.position.y, 0.14);
@@ -526,6 +644,15 @@ export function createStage(canvas, scenes, sections, opts = {}) {
     bgU.uSpin.value = spin;
     bgU.uParty.value = party;
     bgU.uTime.value = reduce ? 0 : time;
+    bgU.uBeat.value = beatPulse;
+    bgU.uChaos.value = reduce ? 0 : chaos;
+    const speed = Math.min(1, Math.abs(vel) / 2500);
+    postU.uTime.value = time;
+    postU.uAberr.value = reduce ? 0 : 0.0015 + speed * 0.012 + kick * 0.022 + beatPulse * 0.006 + chaos * 0.008;
+    postU.uBarrel.value = reduce ? 0 : kick * 0.95 + chaos * (0.22 + Math.sin(time * 2.1) * 0.12);
+    postU.uGlitch.value = reduce ? 0 : Math.min(1, glitchT / 0.3) * 0.9 + kick * 0.25;
+    postU.uGrain.value = reduce ? 0 : 0.035;
+    postU.uScan.value = reduce ? 0 : 0.08 + chaos * 0.14;
 
     renderer.autoClear = false;
     if (!insideNow && dv > 0.002) {
@@ -537,10 +664,14 @@ export function createStage(canvas, scenes, sections, opts = {}) {
       renderer.setRenderTarget(null);
       renderer.setClearColor(0x000000, 0);
     }
+    renderer.setRenderTarget(mainRT);
     renderer.clear();
     renderer.render(bgScene, bgCam);
     renderer.clearDepth();
     renderer.render(insideNow ? inner : scene, camera);
+    renderer.setRenderTarget(null);
+    renderer.clear();
+    renderer.render(postScene, bgCam);
     raf = requestAnimationFrame(frame);
   }
 
@@ -562,11 +693,40 @@ export function createStage(canvas, scenes, sections, opts = {}) {
     burstAt(x, y) {
       ndc.set((x / W) * 2 - 1, -(y / H) * 2 + 1);
       ray.setFromCamera(ndc, camera);
+      postU.uRipples.value[ripIdx].set(x / W, 1 - y / H, time, 1);
+      ripIdx = (ripIdx + 1) % 6;
+      if (!lastInside && flipT >= 1 && ray.intersectObject(pc, true).length) flipT = 0;
       camera.getWorldDirection(dirV);
       plane.setFromNormalAndCoplanarPoint(dirV.negate(), lastLook);
       if (ray.ray.intersectPlane(plane, hitV)) (lastInside ? inBurst : outBurst).burst(hitV);
     },
     setParty(on) { partyOn = !!on; },
+    setChaos(on) { chaosOn = !!on; },
+    // which desktop (if any) is under the pointer
+    pickOs(x, y) {
+      if (!lastInside) return null;
+      ndc.set((x / W) * 2 - 1, -(y / H) * 2 + 1);
+      ray.setFromCamera(ndc, camera);
+      for (const [name, w] of Object.entries(worlds)) {
+        if (!w.pick || w.p < 0.5 || !w.group.visible) continue;
+        if (ray.intersectObjects(w.pick, false).length) return name;
+      }
+      return null;
+    },
+    hoverOs(name) { for (const [n, w] of Object.entries(worlds)) if (w.pick) w.hover = n === name; },
+    // where a desktop's screen sits on the page, for the zoom into the full-screen viewer
+    osScreenRect(name) {
+      const w = worlds[name];
+      if (!w || !w.screen || !lastInside || w.p < 0.5 || !w.group.visible) return null;
+      osBox.setFromObject(w.screen);
+      let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+      for (let i = 0; i < 8; i++) {
+        osV.set(i & 1 ? osBox.max.x : osBox.min.x, i & 2 ? osBox.max.y : osBox.min.y, i & 4 ? osBox.max.z : osBox.min.z).project(camera);
+        const px = ((osV.x + 1) / 2) * W, py = ((1 - osV.y) / 2) * H;
+        x0 = Math.min(x0, px); x1 = Math.max(x1, px); y0 = Math.min(y0, py); y1 = Math.max(y1, py);
+      }
+      return { left: x0, top: y0, width: x1 - x0, height: y1 - y0 };
+    },
     measure,
     stop() { cancelAnimationFrame(raf); },
   };

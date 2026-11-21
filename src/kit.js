@@ -10,7 +10,7 @@ export const easeOutCubic = (t) => 1 - (1 - t) ** 3;
 export const easeOutBack = (t) => { const u = t - 1; return 1 + 2.7 * u * u * u + 1.7 * u * u; };
 
 // Sound effects; main.js fills these in when the visitor turns sound on.
-export const sfx = { pop() {}, whoosh() {}, tada() {} };
+export const sfx = { pop() {}, whoosh() {}, tada() {}, beat() { return -1; } };
 
 export const PAL = {
   yellow: '#FFE14D', pink: '#FF9ECF', lilac: '#B7A3FF', sky: '#7CC8FF', peach: '#FFB07A',
