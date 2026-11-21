@@ -280,6 +280,8 @@ export function initViewer(stage, { reduceMotion }) {
     show(OS.findIndex((o) => o.id === id));
     layout();
     sfx.whoosh();
+    // the 3D page is hidden behind the viewer: stop drawing it so slower school PCs stay smooth
+    setTimeout(() => { if (isOpen) stage?.setPaused?.(true); }, reduceMotion ? 0 : 1000);
     const f = fitBox();
     if (!reduceMotion) {
       const r = from || { left: f.cx - 60, top: f.cy - 38, width: 120, height: 76 };
@@ -303,6 +305,7 @@ export function initViewer(stage, { reduceMotion }) {
   function close() {
     if (!isOpen) return;
     isOpen = false;
+    stage?.setPaused?.(false);
     sfx.whoosh();
     const done = () => {
       root.classList.remove('on');

@@ -5,6 +5,7 @@ import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js
 import { COLORS, SCREEN_NAMES, drawScreen, drawRound } from './screens.js';
 import { lerp, smooth, clamp01, easeOutBack, easeOutCubic, PAL, toon, toonNew, part, rbox, outlineMat, labels, makeLabel, makeConfetti, makeFloaters, sfx } from './kit.js';
 import { buildWorlds } from './worlds.js';
+import { perf, detectGpu, perfTick } from './perf.js';
 
 const ENTRY = 2.6; // inside, the camera starts this many times farther away and flies in
 const easeOutBounce = (x) => {
@@ -85,7 +86,10 @@ export function createStage(canvas, scenes, sections, opts = {}) {
   const onBg = opts.onBg || (() => {});
   const flash = opts.flash || null;
   const burstEl = opts.burst || null;
-  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: 'high-performance' });
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, alpha: true, powerPreference: 'high-performance' });
+  detectGpu(renderer.getContext());
+  // per quality level: pixel ratio cap, MSAA samples, size of the picture inside the monitor
+  const Q = [{ pr: 1.5, ms: 4, portal: 1024 }, { pr: 1, ms: 4, portal: 1024 }, { pr: 1, ms: 2, portal: 768 }, { pr: 0.75, ms: 0, portal: 512 }];
   renderer.setClearColor(0x000000, 0);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   for (const s of Object.values(scenes)) s._bg = new THREE.Color(s.bg || PAL.yellow);
@@ -124,7 +128,7 @@ export function createStage(canvas, scenes, sections, opts = {}) {
   }));
   postQuad.frustumCulled = false;
   postScene.add(postQuad);
-  const mainRT = new THREE.WebGLRenderTarget(1, 1, { samples: 4 });
+  const mainRT = new THREE.WebGLRenderTarget(1, 1, { samples: Q[perf.level].ms });
   postU.tDiffuse.value = mainRT.texture;
   const dbs = new THREE.Vector2();
   const easeInOutCubic = (t) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2);
@@ -273,6 +277,7 @@ export function createStage(canvas, scenes, sections, opts = {}) {
   const miniScrGeo = new THREE.PlaneGeometry(0.88, 0.54).translate(0, 0.66, 0.047);
   const crowdScr = new THREE.InstancedMesh(miniScrGeo, new THREE.MeshBasicMaterial({ toneMapped: false }), crowdN);
   for (const m of [crowdBody, crowdLine, crowdScr]) m.frustumCulled = false;
+  for (let i = 0; i < crowdN; i++) crowdScr.setColorAt(i, new THREE.Color('#262626'));
   rig.add(crowdLine, crowdBody, crowdScr);
   const spots = [];
   for (let i = -5; i <= 5; i++) for (let j = -9; j <= 2; j++) {
@@ -344,7 +349,7 @@ export function createStage(canvas, scenes, sections, opts = {}) {
   }
 
   // what the monitor shows while the camera dives into it
-  const rt = new THREE.WebGLRenderTarget(1024, 626, { samples: 4 });
+  const rt = new THREE.WebGLRenderTarget(Q[perf.level].portal, Math.round(Q[perf.level].portal * 0.611), { samples: Math.min(2, Q[perf.level].ms) });
   const rtCam = new THREE.PerspectiveCamera(30, 3.0 / 1.834, 0.05, 300);
 
   // ======================= layout and scroll =======================
@@ -363,7 +368,7 @@ export function createStage(canvas, scenes, sections, opts = {}) {
     W = window.innerWidth;
     H = window.innerHeight;
     mobile = W < 820 || W / H < 0.9;
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, Q[perf.level].pr));
     renderer.setSize(W, H, false);
     renderer.getDrawingBufferSize(dbs);
     mainRT.setSize(dbs.x, dbs.y);
@@ -426,8 +431,11 @@ export function createStage(canvas, scenes, sections, opts = {}) {
   const lastLook = new THREE.Vector3(), ray = new THREE.Raycaster(), ndc = new THREE.Vector2(), plane = new THREE.Plane(), hitV = new THREE.Vector3(), dirV = new THREE.Vector3();
   let time = 0, lastT = performance.now();
   function frame(now = performance.now()) {
-    const dt = Math.min((now - lastT) / 1000, 0.05);
+    if (paused) { lastT = now; raf = requestAnimationFrame(frame); return; }
+    const dtReal = (now - lastT) / 1000;
+    const dt = Math.min(dtReal, 0.05);
     lastT = now;
+    perfTick(dtReal);
     time += dt;
     const tg = target();
     const k = reduce ? 1 : 1 - Math.exp(-dt * 4.5);
@@ -675,9 +683,47 @@ export function createStage(canvas, scenes, sections, opts = {}) {
     raf = requestAnimationFrame(frame);
   }
 
-  let raf = 0;
+  let raf = 0, paused = false;
   resize();
   window.addEventListener('resize', resize);
+
+  // a slower computer gets fewer pixels and samples
+  perf.on(() => {
+    const q = Q[perf.level];
+    if (mainRT.samples !== q.ms) { mainRT.dispose(); mainRT.samples = q.ms; }
+    const ps = Math.min(2, q.ms);
+    if (rt.samples !== ps) { rt.dispose(); rt.samples = ps; }
+    rt.setSize(q.portal, Math.round(q.portal * 0.611));
+    resize();
+  });
+
+  // Build every shader and upload every texture now, while the page loads, instead of the first time
+  // each world appears: on Windows the graphics driver compiles shaders slowly, and that shows as a hitch mid-scroll.
+  (function prewarm() {
+    const shown = [];
+    for (const root of [scene, inner]) root.traverse((o) => { if (!o.visible) { o.visible = true; shown.push(o); } });
+    const prev = renderer.getRenderTarget();
+    renderer.setRenderTarget(mainRT);
+    try {
+      if (renderer.compileAsync && renderer.extensions.has('KHR_parallel_shader_compile')) {
+        renderer.compileAsync(scene, camera).catch(() => {});
+        renderer.compileAsync(inner, camera).catch(() => {});
+      } else {
+        renderer.compile(scene, camera);
+        renderer.compile(inner, camera);
+      }
+    } catch (e) { /* drawing still compiles on demand */ }
+    renderer.setRenderTarget(prev);
+    for (const o of shown) o.visible = false;
+    const seen = new Set();
+    for (const root of [scene, inner]) root.traverse((o) => {
+      const mats = !o.material ? [] : Array.isArray(o.material) ? o.material : [o.material];
+      for (const m of mats) for (const key of ['map', 'gradientMap', 'alphaMap']) {
+        const t = m[key];
+        if (t && t.isTexture && !seen.has(t)) { seen.add(t); try { renderer.initTexture(t); } catch (e) { /* uploaded on first use */ } }
+      }
+    });
+  })();
   window.addEventListener('load', measure);
   const ro = new ResizeObserver(measure);
   ro.observe(document.body);
@@ -728,6 +774,7 @@ export function createStage(canvas, scenes, sections, opts = {}) {
       return { left: x0, top: y0, width: x1 - x0, height: y1 - y0 };
     },
     measure,
+    setPaused(on) { paused = !!on; },
     stop() { cancelAnimationFrame(raf); },
   };
 }

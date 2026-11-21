@@ -6,8 +6,16 @@ This repository holds our school presentation's website: a one-page, 3D, sticker
 
 ## Open it
 
-- **Online:** turn on GitHub Pages (Settings → Pages → Deploy from a branch → `main`, `/ (root)`), then open `https://linomaini.github.io/free-os-100-pcs/`.
-- **Offline:** download `dist/standalone.html` and double-click it. Everything is inside that one file; without internet the fonts fall back to the system ones.
+- **Online:** https://wedarealgoat.dev (GitHub Pages from `main`, `/ (root)`, with the custom domain in `CNAME`).
+- **Absurd version:** https://wedarealgoat.dev/assurda/ — a separate single file (`assurda/index.html`) with the opened computer that zooms down to the bits, a bonus section on IBM z/OS, a black hole (hold the mouse), rewind (hold R), a kaleidoscope (P three times) and a loop back to the top.
+- **Offline:** download `dist/standalone.html` and double-click it. Everything is inside that one file, fonts included, so it also works from a USB stick on a PC without internet.
+
+## Presenting on the school PCs (Windows)
+
+- **Keys:** a presentation clicker (PageDown / PageUp) or the → ← arrows jump between the sections, even without the tour. **F** switches full screen on and off.
+- **Animations switch:** many school PCs have Windows animations turned off, which the browser reports as "reduce motion", so the site would stay still. When that happens a sparkle button appears in the top bar: press it once to turn the animations back on (that computer remembers it). Opening the page with `?motion=on` does the same.
+- **Speed:** the site checks the graphics chip and the frame rate, and on a slow PC it draws the 3D with fewer pixels and lighter effects. `?q=0` to `?q=3` fixes the level by hand (0 full, 3 lightest).
+- The fonts come with the site, so it looks the same on networks that block font services.
 
 ## What it does
 
@@ -19,12 +27,12 @@ This repository holds our school presentation's website: a one-page, 3D, sticker
 - Click any empty spot to make cubes burst out of it, or click the computer for a backflip. Press **P** to cycle normal → party → chaos → normal. The speaker button in the menu turns sound on (off by default); in party and chaos mode it plays a beat.
 - **Play the tour** scrolls through the whole story by itself. During the tour, the arrow keys or a presentation clicker move between stops; Esc stops it.
 - An interactive scorecard: change how much each criterion matters and watch the ranking move.
-- Works without WebGL (static drawing) and respects the system's "reduce motion" setting.
+- Works without WebGL (static drawing) and respects the system's "reduce motion" setting (see the animations switch above).
 
 ## Files
 
-- `index.html`, `css/style.css`, `js/app.js`: the site.
-- `src/`: source of the script (`main.js` page logic, `scene.js` 3D stage, `worlds.js` the worlds inside the computer, `osui.js` the three desktops, `viewer.js` the full-screen desktop viewer, `crazy.js` sound, modes and other effects, `kit.js` shared 3D pieces, `screens.js` screen and sticker drawings).
+- `index.html`, `css/style.css`, `js/app.js`, `fonts/`: the site.
+- `src/`: source of the script (`main.js` page logic, `scene.js` 3D stage, `worlds.js` the worlds inside the computer, `osui.js` the three desktops, `viewer.js` the full-screen desktop viewer, `crazy.js` sound, modes and other effects, `perf.js` graphics quality levels, `kit.js` shared 3D pieces, `screens.js` screen and sticker drawings).
 - `dist/standalone.html`: the same site in a single file.
 - `docs/speech.md` and `docs/Discorso.pdf`: the speaker script, about 3 minutes each, with likely questions and sources.
 - `docs/Presentazione.pdf`: the 12 slides.

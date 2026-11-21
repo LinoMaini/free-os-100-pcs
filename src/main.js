@@ -2,8 +2,28 @@ import { createStage } from './scene.js';
 import { initCrazy } from './crazy.js';
 
 {
-  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // Many school PCs have Windows animations switched off, which browsers report as "reduce motion".
+  // The site respects that, but the presenter can turn the animations back on with a switch in the bar
+  // (remembered on that computer), or by opening the page with ?motion=on.
+  const prefersReduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const store = (k, v) => { try { if (v === undefined) return localStorage.getItem(k); if (v === null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch (e) { /* private mode */ } return null; };
+  const motionParam = new URLSearchParams(location.search).get('motion');
+  if (motionParam === 'on' || motionParam === 'off') store('motion', motionParam === 'on' ? 'on' : null);
+  const forceMotion = prefersReduce && store('motion') === 'on';
+  const reduceMotion = prefersReduce && !forceMotion;
   document.documentElement.classList.add('js');
+  document.documentElement.classList.toggle('motion-on', forceMotion);
+  if (prefersReduce) {
+    const btn = document.createElement('button');
+    btn.className = 'btn icon-btn';
+    btn.id = 'motionBtn';
+    btn.type = 'button';
+    btn.setAttribute('aria-label', 'Animations');
+    btn.setAttribute('aria-pressed', String(forceMotion));
+    btn.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z"/><path d="M18.5 15.5l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z"/><path class="mo-off" d="M3 3l18 18"/></svg>';
+    btn.addEventListener('click', () => { store('motion', forceMotion ? null : 'on'); location.reload(); });
+    document.getElementById('soundBtn')?.before(btn);
+  }
 
   // Where the computer sits for each section: ax/ay = screen position (0–1), m* = phone values,
   // az/el = camera orbit, zoom = distance factor, screen = what the monitor shows, bg = page colour,
@@ -149,19 +169,25 @@ import { initCrazy } from './crazy.js';
   const tour = { on: false, paused: false, i: 0, left: 0, raf: 0, scrolling: false };
   const DWELL = 6500;
 
-  function scrollToEl(el, done) {
-    const to = el.getBoundingClientRect().top + window.scrollY - navH();
-    if (reduceMotion) { window.scrollTo(0, to); done(); return; }
+  const html = document.documentElement;
+  const stopTop = (el) => Math.round(el.getBoundingClientRect().top + window.scrollY - navH());
+  let tweens = 0;
+  function scrollToEl(el, done, keepGoing = () => tour.on) {
+    const to = stopTop(el);
+    if (reduceMotion) { html.style.scrollBehavior = 'auto'; window.scrollTo(0, to); html.style.scrollBehavior = ''; done(); return; }
     const from = window.scrollY, dist = to - from, t0 = performance.now();
     const dur = Math.min(1600, 600 + Math.abs(dist) * 0.5);
+    tweens++;
     tour.scrolling = true;
+    html.style.scrollBehavior = 'auto';
+    const end = () => { if (--tweens === 0) { tour.scrolling = false; html.style.scrollBehavior = ''; } };
     const step = (now) => {
-      if (!tour.on) { tour.scrolling = false; return; }
+      if (!keepGoing()) { end(); return; }
       const p = Math.min(1, (now - t0) / dur);
       const e = p < 0.5 ? 4 * p * p * p : 1 - (-2 * p + 2) ** 3 / 2;
       window.scrollTo(0, from + dist * e);
       if (p < 1) requestAnimationFrame(step);
-      else { tour.scrolling = false; done(); }
+      else { end(); done(); }
     };
     requestAnimationFrame(step);
   }
@@ -234,5 +260,33 @@ import { initCrazy } from './crazy.js';
     } else if (e.key === 'Escape' || ['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(e.key)) {
       stopTour();
     }
+  });
+
+  // ---------- presenting: a clicker or the arrow keys step through the same stops, F for full screen ----------
+  let jump = 0, jumpTo = -1; // jump counts presses, so a newer press takes over; jumpTo is where the current one is heading
+  window.addEventListener('wheel', () => { jump++; jumpTo = -1; }, { passive: true });
+  window.addEventListener('keydown', (e) => {
+    if (tour.on || e.defaultPrevented || e.metaKey || e.ctrlKey || e.altKey) return;
+    if (e.target.closest?.('input,textarea,select,[contenteditable]') || html.classList.contains('osv-lock')) return;
+    if (e.key === 'f' || e.key === 'F') {
+      if (document.fullscreenElement) document.exitFullscreen?.();
+      else html.requestFullscreen?.().catch(() => {});
+      return;
+    }
+    const next = e.key === 'PageDown' || e.key === 'ArrowRight';
+    const prev = e.key === 'PageUp' || e.key === 'ArrowLeft';
+    if (!next && !prev) return;
+    e.preventDefault();
+    const y = window.scrollY, tops = stops.map(stopTop);
+    let target;
+    if (jumpTo >= 0) target = Math.max(0, Math.min(stops.length - 1, jumpTo + (next ? 1 : -1)));
+    else {
+      let i = -1;
+      tops.forEach((t, k) => { if (t <= y + 4) i = k; });
+      target = next ? Math.min(stops.length - 1, i + 1) : (i >= 0 && y > tops[i] + 4 ? i : Math.max(0, i - 1));
+    }
+    const id = ++jump;
+    jumpTo = target;
+    scrollToEl(stops[target], () => { if (id === jump) jumpTo = -1; }, () => id === jump);
   });
 }

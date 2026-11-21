@@ -4,9 +4,14 @@
    COLOUR sticker yellow ground, black ink, white paper; Mint green, Zorin blue, Endless orange
    TYPE Archivo Black display + Archivo text
    LAYOUT fixed 3D stage, one sticker card per section on alternating sides; phone: stage on top, card below */
+/* fonts ship with the site, so school networks that block font services still get the real type */
+@font-face{font-family:"Archivo Black";font-style:normal;font-weight:400;font-display:swap;src:url(../fonts/archivo-black-latin-400-normal.woff2) format("woff2")}
+@font-face{font-family:Archivo;font-style:normal;font-weight:400;font-display:swap;src:url(../fonts/archivo-latin-400-normal.woff2) format("woff2")}
+@font-face{font-family:Archivo;font-style:normal;font-weight:500;font-display:swap;src:url(../fonts/archivo-latin-500-normal.woff2) format("woff2")}
+@font-face{font-family:Archivo;font-style:normal;font-weight:700;font-display:swap;src:url(../fonts/archivo-latin-700-normal.woff2) format("woff2")}
 :root{color-scheme:light;--bg:#FFE14D;--ink:#000;--paper:#fff;--mint:#2FBF71;--zorin:#3D7BFF;--endless:#FF7A1A;--soft:#333;--display:"Archivo Black","Arial Black",Impact,sans-serif}
 *{box-sizing:border-box;min-width:0}
-html{scroll-padding-top:76px}
+html{scroll-padding-top:76px;scrollbar-gutter:stable;scrollbar-width:thin;scrollbar-color:rgba(0,0,0,.6) transparent}
 body{margin:0;background:var(--bg);color:var(--ink);font:500 17px/1.55 Archivo,system-ui,sans-serif;overflow-x:clip}
 h1,h2,h3{font-family:var(--display);font-weight:400;margin:0;text-wrap:balance}
 p{margin:0}
@@ -152,7 +157,8 @@ main{position:relative;z-index:1}
 .tb-prog i{display:block;height:100%;width:0;background:var(--ink)}
 
 @media (prefers-reduced-motion: no-preference){html{scroll-behavior:smooth}}
-@media (prefers-reduced-motion: reduce){.track{animation:none}.btn{transition:none}}
+html.motion-on{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){:root:not(.motion-on) .track{animation:none}:root:not(.motion-on) .btn{transition:none}}
 
 @media (max-width:1100px){.card,.right .card,.wide .card{grid-column:span 12}.right .card{grid-column:span 12}.scene{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.card{grid-column:1 / span 1}.right .card{grid-column:2 / span 1}.wide .card{grid-column:1 / -1}.hero-copy{grid-column:1 / span 1}}
 @media (max-width:820px){
@@ -197,7 +203,7 @@ main{position:relative;z-index:1}
 @keyframes wordpop{0%{opacity:0;transform:translateY(70%) rotate(-10deg) scale(.5)}}
 body.party .card{animation:wiggle .42s ease-in-out infinite alternate}
 @keyframes wiggle{from{transform:rotate(-1.4deg) scale(1.01)}to{transform:rotate(1.4deg) scale(.99)}}
-@media (prefers-reduced-motion:reduce){.js .card{opacity:1}.js .card.in,.hero h1 .w,body.party .card{animation:none}#blob,#burst{display:none}.card{transition:none}}
+@media (prefers-reduced-motion:reduce){:root.js:not(.motion-on) .card{opacity:1}:root.js:not(.motion-on) .card.in,:root:not(.motion-on) .hero h1 .w,:root:not(.motion-on) body.party .card{animation:none}:root:not(.motion-on) #blob,:root:not(.motion-on) #burst{display:none}:root:not(.motion-on) .card{transition:none}}
 @media (max-width:440px){.nav{gap:8px}.logo{font-size:16px;padding:7px 9px}.nav .btn-ink{font-size:15px;padding:8px 12px}}
 /* ---------- 1000x layer ---------- */
 #trail{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:55}
@@ -215,7 +221,7 @@ main{overflow-x:clip}
 body.chaos .card{animation:chaoswob .26s ease-in-out infinite alternate}
 @keyframes chaoswob{from{transform:rotate(-2.5deg) scale(1.02) skewX(-2deg)}to{transform:rotate(2.5deg) scale(.98) skewX(2deg)}}
 body.party .logo,body.party #tourBtn{animation:wiggle .42s ease-in-out infinite alternate}
-@media (prefers-reduced-motion:reduce){#trail{display:none}.marquee,.marquee.rev{transform:none}.js .card.in,body.chaos .card,body.party .logo,body.party #tourBtn{animation:none}}
+@media (prefers-reduced-motion:reduce){:root:not(.motion-on) #trail{display:none}:root:not(.motion-on) .marquee,:root:not(.motion-on) .marquee.rev{transform:none}:root.js:not(.motion-on) .card.in,:root:not(.motion-on) body.chaos .card,:root:not(.motion-on) body.party .logo,:root:not(.motion-on) body.party #tourBtn{animation:none}}
 /* ---------- desktop viewer ---------- */
 .os-open{display:inline-grid;place-items:center;width:46px;height:46px;margin-left:12px;vertical-align:middle;border:3px solid var(--ink);background:var(--paper);box-shadow:4px 4px 0 var(--ink);border-radius:10px;cursor:pointer;position:relative;transition:transform .15s ease;padding:0}
 .os-open svg{width:26px;height:26px;fill:none;stroke:var(--ink);stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
@@ -273,4 +279,9 @@ html.osv-lock{overflow:hidden}
 .osv-next{right:18px}
 .osv-nav svg{width:24px;height:24px;stroke:#000;stroke-width:3.2;fill:none;stroke-linecap:round;stroke-linejoin:round}
 @media (max-width:820px){.osv-tabs{top:84px;gap:8px}.osv-tab{font-size:13px;padding:9px 10px}.osv-nav{top:auto;bottom:20px;transform:none}.osv-x{width:46px;height:46px}}
-@media (prefers-reduced-motion:reduce){.osv-burst-in,.os-open::after,.osv-pulse::after,.osv-pulse-app::after{animation:none}.osv-app,.os-open{transition:none}}
+@media (prefers-reduced-motion:reduce){:root:not(.motion-on) .osv-burst-in,:root:not(.motion-on) .os-open::after,:root:not(.motion-on) .osv-pulse::after,:root:not(.motion-on) .osv-pulse-app::after{animation:none}:root:not(.motion-on) .osv-app,:root:not(.motion-on) .os-open{transition:none}}
+/* presenting on school PCs: animations switch, lighter effects on slow graphics */
+#motionBtn .mo-off{display:inline}
+#motionBtn[aria-pressed=true] .mo-off{display:none}
+html.q-low .osv{-webkit-backdrop-filter:none;backdrop-filter:none;background:rgba(12,10,30,.84)}
+html.q-low #trail{display:none}

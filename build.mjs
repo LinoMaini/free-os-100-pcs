@@ -12,8 +12,10 @@ await build({
   legalComments: 'eof',
 });
 
-const html = readFileSync('index.html', 'utf8');
-const css = readFileSync('css/style.css', 'utf8');
+const html = readFileSync('index.html', 'utf8').replace(/<link rel="preload"[^>]*>\n?/g, '');
+// fonts go inside the file too, so the offline copy looks the same from a USB stick
+const css = readFileSync('css/style.css', 'utf8')
+  .replace(/url\(\.\.\/fonts\/([\w.-]+\.woff2)\)/g, (_, f) => `url(data:font/woff2;base64,${readFileSync('fonts/' + f).toString('base64')})`);
 const js = readFileSync('js/app.js', 'utf8').replace(/<\/script/gi, '<\\/script');
 const standalone = html
   .replace('<link rel="stylesheet" href="css/style.css">', () => `<style>\n${css}\n</style>`)

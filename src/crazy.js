@@ -3,6 +3,7 @@
 // a second marquee, cards that flip in and tilt toward the pointer, and a cursor blob.
 import { sfx } from './kit.js';
 import { initViewer } from './viewer.js';
+import { perf } from './perf.js';
 
 const PAL = ['#FF9ECF', '#7CC8FF', '#C8EE5A', '#B7A3FF', '#FF8F8F', '#FFFFFF', '#2FBF71', '#3D7BFF', '#FF7A1A'];
 
@@ -237,7 +238,7 @@ export function initCrazy(stage, { reduceMotion }) {
       stage.hoverOs?.(os);
     }
     big = !!e.target.closest?.('a,button,input,label,.tag,.chip');
-    if (tctx && Math.hypot(tx - lastPx, ty - lastPy) > 7) {
+    if (tctx && perf.level < 3 && Math.hypot(tx - lastPx, ty - lastPy) > 7) {
       lastPx = tx;
       lastPy = ty;
       for (let k = 0; k < (mode === 2 ? 3 : 1); k++) {
@@ -250,7 +251,7 @@ export function initCrazy(stage, { reduceMotion }) {
 
   // ---------- one loop for everything that follows the pointer or the scroll ----------
   const secs = [...document.querySelectorAll('[data-scene]')];
-  let lastY = window.scrollY, v = 0, last = performance.now(), skew = 0, skewV = 0, lastSkew = '', lastScratch = 0;
+  let lastY = window.scrollY, v = 0, last = performance.now(), skew = 0, skewV = 0, lastSkew = '', lastScratch = 0, lastRate = 0;
   const loop = (now) => {
     const dt = Math.min(0.05, Math.max(0.001, (now - last) / 1000));
     last = now;
@@ -258,10 +259,13 @@ export function initCrazy(stage, { reduceMotion }) {
     v += ((window.scrollY - lastY) / dt - v) * 0.15;
     lastY = window.scrollY;
     if (!reduceMotion) {
-      const rate = 1 + Math.min(5, Math.abs(v) / 400) + (mode === 2 ? 2 : 0);
-      marquees.forEach((m, k) => m.getAnimations?.({ subtree: true }).forEach((a) => { a.playbackRate = rate * (k ? 1.3 : 1); }));
-      // the whole page wobbles like jelly with the scroll speed
-      const target = Math.max(-9, Math.min(9, v * 0.0028)) + (mode === 2 ? Math.sin(t * 7) * 2.5 : 0);
+      if (now - lastRate > 100) {
+        lastRate = now;
+        const rate = 1 + Math.min(5, Math.abs(v) / 400) + (mode === 2 ? 2 : 0);
+        marquees.forEach((m, k) => m.getAnimations?.({ subtree: true }).forEach((a) => { a.playbackRate = rate * (k ? 1.3 : 1); }));
+      }
+      // the whole page wobbles like jelly with the scroll speed (not on slow graphics, where it costs too much)
+      const target = perf.level >= 2 ? 0 : Math.max(-9, Math.min(9, v * 0.0028)) + (mode === 2 ? Math.sin(t * 7) * 2.5 : 0);
       skewV += ((target - skew) * 90 - skewV * 11) * dt;
       skew += skewV * dt;
       const sv = Math.abs(skew) < 0.02 ? '' : `skewY(${skew.toFixed(2)}deg)`;
