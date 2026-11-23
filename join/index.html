@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#FFE14D">
+<title>Their first computer</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23FFE14D'/%3E%3Crect x='9' y='12' width='46' height='31' rx='4' fill='%23fff' stroke='%23000' stroke-width='4'/%3E%3Crect x='15' y='18' width='34' height='19' fill='%23FF7A1A'/%3E%3Cpath d='M27 43v6h10v-6M19 52h26' stroke='%23000' stroke-width='4' fill='none' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="preload" href="../fonts/archivo-black-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+<style>
+@font-face{font-family:"Archivo Black";font-display:swap;src:url(../fonts/archivo-black-latin-400-normal.woff2) format("woff2")}
+@font-face{font-family:Archivo;font-weight:700;font-display:swap;src:url(../fonts/archivo-latin-700-normal.woff2) format("woff2")}
+:root{--bg:#FFE14D;--ink:#000;--paper:#fff;--mint:#2FBF71;--zorin:#3D7BFF;--endless:#FF7A1A;--display:"Archivo Black","Arial Black",Impact,sans-serif}
+*{box-sizing:border-box;margin:0}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font:700 17px/1.25 Archivo,system-ui,sans-serif;-webkit-tap-highlight-color:transparent;overscroll-behavior:none}
+.view{display:none;min-height:100svh;padding:max(18px,env(safe-area-inset-top)) 18px max(18px,env(safe-area-inset-bottom))}
+body[data-view=pc] .v-pc,body[data-view=code] .v-code{display:grid}
+.v-pc{grid-template-rows:auto 1fr auto auto;gap:14px;justify-items:center;align-items:center}
+
+/* who you are */
+.top{width:100%;display:flex;align-items:flex-start;justify-content:space-between}
+.tag{display:flex;align-items:baseline;gap:8px;background:var(--paper);border:3px solid var(--ink);box-shadow:5px 5px 0 var(--ink);padding:6px 14px 4px;transform:rotate(-2deg)}
+.tag small{font-size:18px}
+#num{font:400 clamp(44px,15vw,64px)/1 var(--display);letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.tag .of{font-size:18px;opacity:.75}
+#dot{width:18px;height:18px;border-radius:50%;border:3px solid var(--ink);background:#bbb;margin-top:10px}
+#dot.up{background:var(--mint)}
+
+/* the computer */
+#pc{width:min(88vw,430px);display:grid;justify-items:center;touch-action:manipulation;cursor:pointer;user-select:none;-webkit-user-select:none}
+.mon{width:100%;background:var(--paper);border:4px solid var(--ink);border-radius:18px;padding:10px 10px 26px;box-shadow:8px 8px 0 var(--ink);position:relative}
+.mon::after{content:"";position:absolute;left:50%;bottom:8px;width:10px;height:10px;margin-left:-5px;border-radius:50%;background:var(--endless);border:2px solid var(--ink)}
+.neck{width:24%;height:26px;background:var(--paper);border:4px solid var(--ink);border-top:0}
+.base{width:46%;height:16px;background:var(--paper);border:4px solid var(--ink);border-radius:8px 8px 4px 4px;box-shadow:6px 6px 0 var(--ink)}
+#pc.boop .mon{animation:boop .28s cubic-bezier(.2,.9,.3,1.4)}
+@keyframes boop{40%{transform:scale(.96) rotate(-1deg)}}
+.scr{position:relative;aspect-ratio:16/10;border:3px solid var(--ink);border-radius:6px;overflow:hidden;background:#111}
+.s{position:absolute;inset:0;display:none}
+.s>svg:not([class]),.orbit>svg{display:block;width:100%;height:100%}
+.s svg[class]{position:absolute;display:block;height:auto}
+.scr.in .s{animation:show .35s ease-out}
+@keyframes show{from{opacity:0;transform:scale(1.04)}}
+.scr[data-s=boot] .s-boot,.scr[data-s=globe] .s-globe,.scr[data-s=bits] .s-bits,.scr[data-s=filter] .s-filter,.scr[data-s=mint] .s-mint,.scr[data-s=zorin] .s-zorin,.scr[data-s=endless] .s-endless,.scr[data-s=scores] .s-scores,.scr[data-s=pick] .s-pick,.scr[data-s=pick] .s-endless,.scr[data-s=install] .s-install,.scr[data-s=end] .s-end,.scr[data-s=heavy] .s-heavy{display:block}
+.scr[data-s=install][data-i=done] .s-install{display:none}
+.scr[data-s=install][data-i=done] .s-endless,.scr[data-s=install][data-i=done] .s-endless svg.chk{display:block}
+
+/* a new computer: nothing on it yet */
+.cur{position:absolute;left:7%;top:10%;width:7%;height:12%;background:#e8e8e8;animation:blink 1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+/* the mission: a plane over the globe */
+.s-globe{background:#2350c8}
+.orbit{position:absolute;inset:0;animation:spin 6s linear infinite;transform-origin:50% 50%}
+@keyframes spin{to{transform:rotate(360deg)}}
+/* inside the computer: bits */
+.s-bits{background:#0d0d0d;font:400 14px/1.1 ui-monospace,Menlo,monospace;color:var(--endless);display:none;overflow:hidden}
+.scr[data-s=bits] .s-bits{display:flex;justify-content:space-around}
+.s-bits span{writing-mode:vertical-rl;text-orientation:upright;animation:rain 2.4s linear infinite;opacity:.9}
+.s-bits span:nth-child(2n){color:var(--mint);animation-duration:3.1s}
+.s-bits span:nth-child(3n){color:#fff;animation-duration:1.9s}
+@keyframes rain{from{transform:translateY(-55%)}to{transform:translateY(0)}}
+/* about 100 in, 3 out */
+.s-filter{background:var(--paper)}
+.s-filter rect{fill:#ddd;stroke:#000;stroke-width:1.1;animation:out 1.8s .4s ease-in forwards}
+.s-filter rect.k{animation:keep .5s 2.2s cubic-bezier(.2,.9,.3,1.4) forwards;transform-box:fill-box;transform-origin:center}
+.s-filter .k1{--c:#2FBF71}.s-filter .k2{--c:#3D7BFF}.s-filter .k3{--c:#FF7A1A}
+@keyframes out{to{opacity:.1}}
+@keyframes keep{to{fill:var(--c);transform:scale(1.9)}}
+/* the scores */
+.s-scores{background:var(--paper);padding:7% 8%}
+.scr[data-s=scores] .s-scores{display:grid;align-content:center;gap:9%}
+.row{display:grid;grid-template-columns:34% 1fr 12%;align-items:center;gap:4%;font-size:clamp(12px,3.6vw,16px)}
+.row b{height:clamp(14px,4.5vw,22px);border:2px solid var(--ink);background:var(--c);transform-origin:left;animation:grow .9s cubic-bezier(.2,.8,.2,1) both;width:calc(var(--w) * 1%)}
+.row:nth-child(2) b{animation-delay:.15s}.row:nth-child(3) b{animation-delay:.3s}
+@keyframes grow{from{transform:scaleX(0)}}
+.row span:last-child{text-align:right;font-family:var(--display);font-weight:400}
+/* our pick */
+.star{position:absolute;right:6%;top:8%;width:30%;animation:pop .6s .2s cubic-bezier(.2,.9,.3,1.5) both}
+@keyframes pop{from{transform:scale(0) rotate(-40deg)}}
+.s-pick{background:none}
+/* installing */
+.s-install{background:#151515}
+.stick{position:absolute;left:50%;top:14%;width:34%;margin-left:-17%;animation:bob 1.2s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(-8%) rotate(-3deg)}}
+.meter{position:absolute;left:12%;right:12%;bottom:16%;height:14%;border:3px solid #fff;border-radius:6px;overflow:hidden;background:#333}
+#bar{position:absolute;inset:0;background:var(--endless);transform:scaleX(0);transform-origin:left}
+#pct{position:absolute;inset:0;display:grid;place-items:center;color:#fff;font:400 clamp(13px,3.8vw,18px)/1 var(--display);text-shadow:0 2px 0 #000}
+.scr[data-i=wait] #pct{animation:blink 1s steps(1) infinite}
+.s svg.chk{display:none;right:5%;bottom:20%;width:24%;animation:pop .5s cubic-bezier(.2,.9,.3,1.5) both}
+/* questions */
+.s-end{background:var(--bg);overflow:hidden}
+.q{position:absolute;inset:0;display:grid;place-items:center;font:400 min(30vw,140px)/1 var(--display);-webkit-text-stroke:3px #000;color:var(--paper);text-shadow:6px 6px 0 #000;animation:wob 1.6s ease-in-out infinite}
+@keyframes wob{50%{transform:rotate(-6deg) scale(1.05)}}
+.conf i{position:absolute;top:-10%;width:5%;aspect-ratio:1;border:2px solid #000;background:var(--c);animation:fall 2.6s linear infinite}
+@keyframes fall{to{transform:translateY(1200%) rotate(540deg)}}
+/* the heaviest system */
+.s-heavy{background:#222}
+.glass{position:absolute;left:50%;top:50%;width:26%;margin:-20% 0 0 -13%;animation:spin 2.4s cubic-bezier(.6,0,.4,1) infinite}
+
+#cap{font:400 clamp(20px,6vw,26px)/1.15 var(--display);text-align:center;max-width:22ch;min-height:2.3em;display:grid;align-items:center}
+#note{background:var(--paper);border:3px solid var(--ink);padding:6px 12px;font-size:15px}
+.foot{font-size:13px;opacity:.6;letter-spacing:.02em}
+
+/* typing the code */
+.v-code{place-items:center;align-content:center;gap:18px}
+.v-code form{display:grid;gap:14px;justify-items:center;background:var(--paper);border:3px solid var(--ink);box-shadow:8px 8px 0 var(--ink);padding:22px 20px;width:min(100%,360px)}
+.v-code label{font:400 26px/1 var(--display)}
+#code{width:100%;font:400 34px/1 var(--display);letter-spacing:.18em;text-align:center;text-transform:uppercase;padding:12px 6px;border:3px solid var(--ink);background:var(--bg);border-radius:0;color:var(--ink)}
+#code:focus-visible{outline:4px solid var(--zorin);outline-offset:3px}
+#code[aria-invalid=true]{background:#ffd0d0}
+.go{font:700 19px/1 Archivo,sans-serif;min-height:52px;padding:12px 26px;background:var(--ink);color:var(--bg);border:3px solid var(--ink);box-shadow:4px 4px 0 var(--endless);cursor:pointer}
+.go:active{transform:translate(3px,3px);box-shadow:1px 1px 0 var(--endless)}
+.go:focus-visible{outline:4px solid var(--zorin);outline-offset:3px}
+
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important}.s-filter rect{opacity:.1}.s-filter rect.k{opacity:1;fill:var(--c)}}
+</style>
+</head>
+<body data-view="">
+<main class="view v-pc" aria-live="polite">
+  <div class="top">
+    <p class="tag"><small>PC</small><span id="num">…</span><span class="of">/100</span></p>
+    <span id="dot" role="img" aria-label="Connection"></span>
+  </div>
+  <div id="pc">
+    <div class="mon">
+      <div class="scr" id="scr" data-s="boot">
+        <div class="s s-boot"><i class="cur"></i></div>
+        <div class="s s-globe"><svg viewBox="0 0 160 100" aria-hidden="true"><defs><clipPath id="cg"><circle cx="80" cy="50" r="33"/></clipPath></defs><circle cx="80" cy="50" r="34" fill="#3D7BFF"/><g clip-path="url(#cg)" fill="#2FBF71" stroke="#000" stroke-width="2.2" stroke-linejoin="round"><path d="M50 28c7-5 16-4 20 1 3 4-1 8 3 11s9 2 9 8-6 9-12 8-8-6-12-8-10-3-11-9 0-8 3-11z"/><path d="M90 22c6-2 14 0 17 5s-1 8 2 12 6 9 2 14-10 4-13 0-1-9-5-12-9-4-8-10 1-7 5-9z"/><path d="M98 66c4-2 9 0 10 4s-3 7-7 7-6-3-6-6 1-4 3-5z"/></g><circle cx="80" cy="50" r="34" fill="none" stroke="#000" stroke-width="3"/></svg><div class="orbit"><svg viewBox="0 0 160 100" aria-hidden="true"><g transform="translate(80 7)"><path d="M-9 0h18l4 3-4 3h-18zM-2 0l-6-6h4l7 6zM-2 6l-6 6h4l7-6zM-9 1l-3-4h2l4 4z" fill="#fff" stroke="#000" stroke-width="1.6" stroke-linejoin="round"/></g></svg></div></div>
+        <div class="s s-bits" aria-hidden="true"><span>1011001011010010110100101</span><span>0110100101101001011010011</span><span>1100101101001011010010110</span><span>0101101001011010010110100</span><span>1010010110100101101001011</span><span>0110100101101001011010010</span><span>1101001011010010110100101</span><span>0010110100101101001011010</span></div>
+        <div class="s s-filter" aria-hidden="true"></div>
+        <div class="s s-mint"><svg viewBox="0 0 160 100" aria-hidden="true"><defs><linearGradient id="gm" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#b9dcb0"/><stop offset="1" stop-color="#3f7a52"/></linearGradient></defs><rect width="160" height="100" fill="url(#gm)"/><path d="M0 70c30-12 60 6 90-4s50-14 70-8v30H0z" fill="#2f6141" opacity=".5"/><rect x="34" y="16" width="92" height="56" rx="3" fill="#fff" stroke="#000" stroke-width="2"/><rect x="34" y="16" width="92" height="10" rx="3" fill="#3a3a3a"/><circle cx="118" cy="21" r="2.4" fill="#2FBF71"/><rect x="42" y="33" width="50" height="5" rx="2" fill="#2FBF71"/><rect x="42" y="43" width="74" height="4" rx="2" fill="#ccc"/><rect x="42" y="51" width="64" height="4" rx="2" fill="#ccc"/><rect x="42" y="59" width="70" height="4" rx="2" fill="#ccc"/><rect y="88" width="160" height="12" fill="#262626"/><rect x="3" y="90" width="9" height="8" rx="2" fill="#2FBF71"/><rect x="16" y="91" width="6" height="6" rx="1" fill="#888"/><rect x="25" y="91" width="6" height="6" rx="1" fill="#e9b64a"/><rect x="34" y="91" width="6" height="6" rx="1" fill="#5aa0ff"/><rect x="140" y="92" width="16" height="4" rx="1" fill="#777"/></svg></div>
+        <div class="s s-zorin"><svg viewBox="0 0 160 100" aria-hidden="true"><defs><linearGradient id="gz" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#9cc4ff"/><stop offset="1" stop-color="#2452c9"/></linearGradient></defs><rect width="160" height="100" fill="url(#gz)"/><circle cx="128" cy="24" r="22" fill="#fff" opacity=".18"/><rect x="18" y="14" width="78" height="52" rx="3" fill="#fff" stroke="#000" stroke-width="2"/><rect x="18" y="14" width="78" height="10" rx="3" fill="#3D7BFF"/><rect x="25" y="31" width="38" height="5" rx="2" fill="#3D7BFF"/><rect x="25" y="41" width="62" height="4" rx="2" fill="#ccc"/><rect x="25" y="49" width="54" height="4" rx="2" fill="#ccc"/><rect x="104" y="40" width="44" height="40" rx="3" fill="#1f2633" stroke="#000" stroke-width="2"/><rect x="109" y="46" width="34" height="4" rx="2" fill="#5d8cff"/><rect x="109" y="54" width="28" height="4" rx="2" fill="#667"/><rect x="109" y="62" width="31" height="4" rx="2" fill="#667"/><rect y="88" width="160" height="12" fill="#1f2633"/><rect x="3" y="90" width="9" height="8" rx="2" fill="#3D7BFF"/><rect x="16" y="91" width="6" height="6" rx="1" fill="#9aa"/><rect x="25" y="91" width="6" height="6" rx="1" fill="#f0a84a"/><rect x="140" y="92" width="16" height="4" rx="1" fill="#778"/></svg></div>
+        <div class="s s-endless"><svg viewBox="0 0 160 100" aria-hidden="true"><defs><linearGradient id="ge" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffd896"/><stop offset="1" stop-color="#ff7a1a"/></linearGradient></defs><rect width="160" height="100" fill="url(#ge)"/><rect x="45" y="9" width="70" height="10" rx="5" fill="#fff" stroke="#000" stroke-width="1.8"/><circle cx="52" cy="14" r="2.2" fill="none" stroke="#999" stroke-width="1.2"/><g stroke="#000" stroke-width="1.8"><rect x="28" y="28" width="18" height="18" rx="5" fill="#2FBF71"/><rect x="56" y="28" width="18" height="18" rx="5" fill="#3D7BFF"/><rect x="84" y="28" width="18" height="18" rx="5" fill="#fff"/><rect x="112" y="28" width="18" height="18" rx="5" fill="#e74c8b"/><rect x="28" y="56" width="18" height="18" rx="5" fill="#ffe14d"/><rect x="56" y="56" width="18" height="18" rx="5" fill="#8e5cf7"/><rect x="84" y="56" width="18" height="18" rx="5" fill="#23b8c4"/><rect x="112" y="56" width="18" height="18" rx="5" fill="#fff"/></g><path d="M89 33h8M89 37h8M89 41h5" stroke="#000" stroke-width="1.6"/><rect y="88" width="160" height="12" fill="#222"/><circle cx="8" cy="94" r="4" fill="#ff7a1a"/><rect x="140" y="92" width="16" height="4" rx="1" fill="#777"/></svg><svg class="chk" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="17" fill="#2FBF71" stroke="#000" stroke-width="3"/><path d="M11 21l6 6 12-13" fill="none" stroke="#000" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="s s-scores"><p class="row" style="--c:var(--endless);--w:100"><span>Endless</span><b></b><span>20</span></p><p class="row" style="--c:var(--mint);--w:90"><span>Mint</span><b></b><span>18</span></p><p class="row" style="--c:var(--zorin);--w:80"><span>Zorin Lite</span><b></b><span>16</span></p></div>
+        <div class="s s-pick"><svg class="star" viewBox="0 0 40 40" aria-hidden="true"><path d="M20 2l5.3 11.3 12.2 1.5-9 8.5 2.3 12.2L20 29.6 9.2 35.5l2.3-12.2-9-8.5 12.2-1.5z" fill="#FFE14D" stroke="#000" stroke-width="3" stroke-linejoin="round"/></svg></div>
+        <div class="s s-install"><svg class="stick" viewBox="0 0 44 22" aria-hidden="true"><rect x="1.5" y="3" width="28" height="16" rx="5" fill="#FF7A1A" stroke="#000" stroke-width="3"/><rect x="29.5" y="6" width="12" height="10" rx="2" fill="#D9D9D9" stroke="#000" stroke-width="3"/><circle cx="10" cy="10" r="3.6" fill="#fff" stroke="#000" stroke-width="1.6"/><circle cx="19" cy="10" r="3.6" fill="#fff" stroke="#000" stroke-width="1.6"/><circle cx="11" cy="10.5" r="1.7"/><circle cx="20" cy="10.5" r="1.7"/></svg><div class="meter"><i id="bar"></i><span id="pct">0%</span></div></div>
+        <div class="s s-end"><div class="conf" aria-hidden="true"><i style="left:6%;--c:#FF7A1A"></i><i style="left:22%;--c:#3D7BFF;animation-delay:-.8s"></i><i style="left:38%;--c:#2FBF71;animation-delay:-1.6s"></i><i style="left:55%;--c:#fff;animation-delay:-.4s"></i><i style="left:70%;--c:#e74c8b;animation-delay:-2s"></i><i style="left:86%;--c:#8e5cf7;animation-delay:-1.2s"></i></div><p class="q" aria-hidden="true">?</p></div>
+        <div class="s s-heavy"><svg class="glass" viewBox="0 0 30 40" aria-hidden="true"><path d="M4 3h22M4 37h22M7 3c0 11 16 12 16 17S7 26 7 37M23 3c0 11-16 12-16 17s16 6 16 17" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"/><path d="M10 33l5-4 5 4z" fill="#FFE14D"/></svg></div>
+      </div>
+    </div>
+    <div class="neck"></div>
+    <div class="base"></div>
+  </div>
+  <p id="cap"></p>
+  <p id="note" hidden>No connection</p>
+  <p class="foot">wedarealgoat.dev</p>
+</main>
+<main class="view v-code">
+  <form id="codeForm" autocomplete="off">
+    <label for="code">Code</label>
+    <input id="code" name="code" inputmode="text" autocapitalize="characters" spellcheck="false" maxlength="6" required>
+    <button class="go" type="submit">Join</button>
+  </form>
+  <p class="foot">wedarealgoat.dev</p>
+</main>
+<script src="../js/join.js?v=ebff329285" defer></script>
+</body>
+</html>

@@ -31,6 +31,8 @@ This repository holds our school presentation's website: a one-page, 3D, sticker
 - A small USB stick with eyes rides along the top bar as you scroll, showing how far you are.
 - With a mouse, click any empty spot to make cubes burst out of it, or click the computer for a backflip. Press **P** to cycle normal → party → chaos → normal. The speaker button in the menu turns sound on (off by default); in party and chaos mode it plays a beat.
 - **Play the tour** is the 12-minute presentation: four parts of exactly 3 minutes, one system per speaker: Lino opens and presents Linux Mint, Davide Zorin OS Lite, Dennis Endless OS (both with time for a live demo of the working desktop), and Roberto closes with the comparison, our pick and the plan (scripts in `docs/speech.md`). A desktop left open for a demo closes by itself at the handover. It moves on by itself, and at 3:00 it hands over to the next speaker. The only clock is hidden in the little USB stick under the top bar: it walks across in 3 minutes, its line turns red in the last 30 seconds and the stick shakes in the last 10. The arrow keys or a presentation clicker move between stops (the time left is shared out again), Pause stops the handover, Esc ends the tour. `?slot=60` makes each part 60 seconds, for a quick rehearsal.
+- **The audience's phones become the 100 PCs:** the phone button in the top bar (or **J**) shows a QR code and a six-letter code. Each phone that scans it gets a PC number and a little computer on its screen that follows the presentation: the globe, the bits, the three desktops, the scores, our pick. At **How to install it** the phones install Endless OS ten at a time, like the ten USB sticks, and the grid of 100 squares in the corner fills up live; a tap on a phone makes its square jump. The tour shrinks the panel into the corner; **End** closes the room, and a reload in the middle keeps the same room and numbers. Messages go through free public MQTT brokers (several at once, one on port 443, so a school network that blocks some still lets the others through); they carry only PC ids and the name of the stop, never text, and if none gets through the site carries on as usual.
+- **Works without internet:** after the first visit, a service worker keeps the whole site on the device (pages, script, fonts, the phone page). If the Wi-Fi drops, an "Offline" sticker appears in the top bar and everything keeps working, like Endless OS. It can also be installed as an app (Chrome: the install icon in the address bar; Safari: File → Add to Dock).
 - An interactive scorecard: change how much each criterion matters and watch the ranking move.
 - Works without WebGL (static drawing) and respects the system's "reduce motion" setting (see the animations switch above).
 
@@ -38,6 +40,8 @@ This repository holds our school presentation's website: a one-page, 3D, sticker
 
 - `index.html`, `css/style.css`, `js/app.js`, `fonts/`: the site.
 - `src/`: source of the script (`main.js` page logic, `scene.js` 3D stage, `worlds.js` the worlds inside the computer, `worlds2.js` the opened computer and the mainframe, `worlds3.js` the opening globe, `worlds4.js` the install tutorial, `osui.js` the three desktops drawn in 3D, `viewer.js` the full-screen viewer, `desk.js` the working desktops and their apps, `crazy.js` sound, modes and other effects, `absurd.js` black hole, rewind and wormhole, `perf.js` graphics quality levels, `kit.js` shared 3D pieces, `screens.js` screen and sticker drawings).
+- `join/index.html`, `js/join.js`: the page for the audience's phones; `sw.js` (made by the build), `manifest.webmanifest`, `icons/`: offline copy and app install.
+- `src/fleet.js` the phone room on the big screen, `src/join.js` the phone page, `src/room.js` what they share (stops, install rounds), `src/mq.js` a tiny MQTT client over WebSocket, `src/offline.js` and `src/sw.template.js` the offline copy.
 - `dist/standalone.html`: the same site in a single file.
 - `docs/speech.md` and `docs/Discorso.pdf`: the speaker script, about 3 minutes each, with likely questions and sources.
 - `docs/Presentazione.pdf`: the 12 slides.
@@ -49,7 +53,7 @@ npm install
 npm run build
 ```
 
-This bundles `src/` with three.js (and the world map from `world-atlas`) into `js/app.js` and rebuilds `dist/standalone.html`.
+This bundles `src/` with three.js (and the world map from `world-atlas`) into `js/app.js`, builds the phone page into `js/join.js`, writes `sw.js` with the list of files to keep offline, and rebuilds `dist/standalone.html`. To test the phones without the public brokers, add `?mq=ws://localhost:9001/mqtt` to the address (any MQTT-over-WebSocket broker).
 
 ## Team
 

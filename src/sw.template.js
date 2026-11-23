@@ -1,0 +1,48 @@
+// Keeps a copy of the whole site on the device, so it opens and works without internet.
+// build.mjs fills in the file list and the version; a new version replaces the old copy.
+const CACHE = 'wrg-__VERSION__';
+const ASSETS = __ASSETS__;
+
+self.addEventListener('install', (e) => {
+  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(ASSETS.map((u) => new Request(u, { cache: 'reload' })))).then(() => self.skipWaiting()));
+});
+self.addEventListener('activate', (e) => {
+  e.waitUntil(
+    caches.keys()
+      .then((keys) => Promise.all(keys.filter((k) => k.startsWith('wrg-') && k !== CACHE).map((k) => caches.delete(k))))
+      .then(() => self.clients.claim()),
+  );
+});
+
+// pages: the network first (so a new version shows up), the copy if there's no network or it's too slow
+const pageKey = (url) => { const u = new URL(url); u.search = ''; u.hash = ''; u.pathname = u.pathname.replace(/index\.html$/, ''); return u.href; };
+async function page(req) {
+  const cache = await caches.open(CACHE);
+  try {
+    const res = await Promise.race([fetch(req), new Promise((_, no) => setTimeout(() => no(new Error('slow')), 4000))]);
+    if (res.ok) cache.put(pageKey(req.url), res.clone());
+    return res;
+  } catch (e) {
+    return (await cache.match(pageKey(req.url))) || (await cache.match(new URL('./', self.registration.scope).href)) || Response.error();
+  }
+}
+// files: the copy first (their names change with every version), the network for anything new
+async function file(req) {
+  const cache = await caches.open(CACHE);
+  const hit = await cache.match(req);
+  if (hit) return hit;
+  try {
+    const res = await fetch(req);
+    if (res.ok && res.type === 'basic') cache.put(req, res.clone());
+    return res;
+  } catch (e) {
+    return (await cache.match(req, { ignoreSearch: true })) || Response.error();
+  }
+}
+self.addEventListener('fetch', (e) => {
+  const req = e.request;
+  if (req.method !== 'GET') return;
+  const url = new URL(req.url);
+  if (url.origin !== self.location.origin) return;
+  e.respondWith(req.mode === 'navigate' ? page(req) : file(req));
+});

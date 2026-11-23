@@ -20,6 +20,10 @@ Il timer è nascosto nella chiavetta USB con gli occhi, sotto la barra in alto: 
 
 **Demo del desktop (Davide e Dennis):** cliccate il pulsante con il monitor accanto al nome del sistema; il desktop si apre a tutto schermo e si usa davvero. Esc lo chiude. Mentre è aperto le frecce servono al desktop, non al tour.
 
+**Telefoni del pubblico (prima di iniziare):** premete il pulsante con il telefono in alto (o J): compare un QR con un codice di sei lettere. La classe lo inquadra e ogni telefono diventa uno dei 100 PC, con il suo numero; i quadratini si accendono sullo schermo. Poi premete **Play the tour**: il riquadro va in un angolo e i telefoni seguono da soli le tappe. A **How to install it** i telefoni installano Endless OS dieci alla volta, come le dieci chiavette, e i quadratini si riempiono di arancione. Serve internet sul PC che presenta e sui telefoni; se la rete della scuola lo blocca, il sito va avanti normalmente. **End** chiude la stanza.
+
+**Senza internet:** aprite il sito una volta con internet, sullo stesso PC e browser (anche il giorno prima): da lì funziona anche senza. Se il Wi-Fi cade, in alto compare l'adesivo **Offline** e si continua. Si può anche installare come app: in Chrome l'icona di installazione nella barra dell'indirizzo, in Safari File → Aggiungi al Dock.
+
 Con il telecomando o le frecce → e ← andate avanti o indietro di una tappa: il tempo che vi resta si ridistribuisce sulle tappe rimaste. **Pause**, nella barra in basso, ferma il tour e anche il passaggio automatico; Esc lo chiude. Per una prova veloce, wedarealgoat.dev/?slot=60 fa durare ogni parte 60 secondi.
 
 - Le righe **[Nome della tappa]** dicono dove si trova il tour; le righe in *corsivo tra parentesi* sono le azioni da fare.
@@ -152,6 +156,8 @@ On accessibility, all three are good, and Mint and Endless make the settings eas
 Our plan B: where the internet is reliable and people need office skills, Linux Mint is an excellent choice.
 
 **[How to install it]**
+
+*(If the class joined with their phones, point at the squares in the corner: their phones are installing now, ten at a time.)*
 
 Here is how we would install it on one hundred PCs. We download the full edition of Endless OS and turn a USB stick of at least 32 gigabytes into a “reformatter” stick. On each Asus PC, we hold F2 and press power to open the BIOS, press F8 for the Boot Menu and pick the stick. The stick copies Endless OS onto the PC, and we move on to the next one.
 

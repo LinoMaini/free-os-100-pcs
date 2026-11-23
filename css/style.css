@@ -591,3 +591,72 @@ html[data-td="1"] .td-cap [data-l="1"],html[data-td="2"] .td-cap [data-l="2"],ht
 #progress.t-end .pg-stick{animation:stickShake .45s ease-in-out infinite}
 @keyframes stickShake{0%,100%{rotate:0deg}25%{rotate:-14deg}75%{rotate:14deg}}
 @media (prefers-reduced-motion:reduce){:root:not(.motion-on) #progress.t-end .pg-stick{animation:none;opacity:.5}}
+
+/* ---------- offline sticker: the site keeps working without internet ---------- */
+.net-chip{display:inline-flex;align-items:center;gap:6px;min-height:34px;padding:4px 12px 4px 8px;background:var(--ink);color:var(--bg);font:700 15px/1 Archivo,sans-serif;border:3px solid var(--ink);box-shadow:3px 3px 0 var(--endless);transform:rotate(-3deg);white-space:nowrap}
+.net-chip[hidden]{display:none}
+.net-chip svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round}
+.net-chip svg circle{fill:currentColor;stroke:none}
+.net-chip .cut{stroke:var(--endless);stroke-width:3}
+.net-chip.pop{animation:chipPop .55s cubic-bezier(.2,.9,.3,1.5)}
+@keyframes chipPop{from{transform:rotate(-20deg) scale(.2);opacity:0}}
+
+/* ---------- the audience's phones: join button, room panel, the grid of 100 PCs ---------- */
+#joinBtn{position:relative}
+#joinBtn .ph-w{opacity:0;transition:opacity .2s ease}
+#joinBtn[aria-pressed=true] .ph-w{opacity:1}
+#joinBtn .badge{position:absolute;top:-11px;right:-11px;min-width:24px;height:24px;padding:0 5px;border-radius:12px;background:var(--endless);color:var(--ink);border:2px solid var(--ink);font:700 13px/20px Archivo,sans-serif;text-align:center;font-variant-numeric:tabular-nums}
+#joinBtn .badge[hidden]{display:none}
+@media (max-width:820px){#joinBtn{margin-left:0}}
+@media (max-width:560px){#joinBtn{display:none}}
+
+.fleet{position:fixed;z-index:26;background:var(--paper);color:var(--ink);border:4px solid var(--ink);box-shadow:8px 8px 0 var(--ink);font:500 15px/1.2 Archivo,sans-serif}
+.fleet[hidden]{display:none}
+.fleet p{margin:0}
+.rm-side{display:grid;gap:12px}
+.rm-x{position:absolute;top:-18px;right:-18px;width:44px;height:44px;border-radius:50%;border:3px solid var(--ink);background:var(--paper);color:var(--ink);font:400 26px/1 var(--display);cursor:pointer;box-shadow:3px 3px 0 var(--ink);padding:0}
+.rm-x:focus-visible,.fleet .btn:focus-visible{outline:4px solid var(--zorin);outline-offset:3px}
+.rm-dot{display:inline-block;width:14px;height:14px;border-radius:50%;border:2px solid var(--ink);background:#bbb;margin-right:10px;vertical-align:2px}
+.rm-dot.up{background:var(--mint)}
+.rm-title{font:400 30px/1 var(--display)}
+.rm-url{display:grid;gap:6px;font:700 18px/1.2 Archivo,sans-serif}
+.rm-code{font:400 42px/1 var(--display);letter-spacing:.12em}
+.rm-warn{color:#b00020;font-weight:700}
+.rm-warn[hidden]{display:none}
+.rm-grid{display:grid;grid-template-columns:repeat(10,1fr);gap:4px}
+.rm-grid i{aspect-ratio:1;border:2px solid var(--ink);border-radius:3px;background:var(--paper);position:relative;overflow:hidden}
+.rm-grid i.on{background:var(--bg)}
+.rm-grid i.idle{background:#e9dfa8}
+.rm-grid i::after{content:"";position:absolute;inset:0;background:var(--endless);transform:scaleY(var(--p,0));transform-origin:bottom}
+.rm-grid i.new{animation:cellIn .5s cubic-bezier(.2,.9,.3,1.6)}
+.rm-grid i.tap{animation:cellTap .45s cubic-bezier(.2,.9,.3,1.6)}
+@keyframes cellIn{from{transform:scale(0) rotate(-40deg)}}
+@keyframes cellTap{40%{transform:scale(1.55) rotate(10deg);background:var(--endless)}}
+.rm-count{display:flex;align-items:baseline;gap:3px;font-variant-numeric:tabular-nums}
+.rm-n{font:400 36px/1 var(--display)}
+.rm-of{font:700 17px/1 Archivo,sans-serif}
+.rm-actions{display:flex;justify-content:flex-end}
+
+/* big: the join screen, before the presentation starts */
+.fleet[data-mode=big]{left:50%;top:calc(50% + 30px);width:max-content;transform:translate(-50%,-50%);display:grid;grid-template-columns:auto 250px;gap:24px;padding:22px;align-items:center;max-width:calc(100vw - 32px);max-height:calc(100svh - 110px);animation:fleetIn .45s cubic-bezier(.2,.9,.3,1.25)}
+.fleet[data-mode=big] .rm-qr svg{display:block;width:min(340px,52svh);height:auto;border:3px solid var(--ink)}
+.fleet[data-mode=big] .rm-grid{width:250px}
+@keyframes fleetIn{from{opacity:0;transform:translate(-50%,-50%) scale(.85) rotate(-2deg)}}
+@media (max-width:700px){.fleet[data-mode=big]{grid-template-columns:1fr;justify-items:center;overflow:auto}.fleet[data-mode=big] .rm-qr svg{width:min(62vw,300px)}}
+
+/* mini and install: a small card in the corner while the tour runs */
+.fleet[data-mode=mini],.fleet[data-mode=install]{right:16px;bottom:100px;padding:10px 10px 8px;cursor:pointer;display:block}
+.fleet[data-mode=mini] .rm-qr,.fleet[data-mode=install] .rm-qr,.fleet[data-mode=mini] .rm-title,.fleet[data-mode=install] .rm-title,.fleet[data-mode=mini] .rm-url,.fleet[data-mode=install] .rm-url,.fleet[data-mode=mini] .rm-actions,.fleet[data-mode=install] .rm-actions,.fleet[data-mode=mini] .rm-x,.fleet[data-mode=install] .rm-x{display:none}
+.fleet[data-mode=mini] .rm-side,.fleet[data-mode=install] .rm-side{gap:6px}
+.fleet[data-mode=mini]{width:124px}
+.fleet[data-mode=mini] .rm-grid{gap:2px}
+.fleet[data-mode=mini] .rm-grid i{border-width:1.5px;border-radius:2px}
+.fleet[data-mode=mini] .rm-n{font-size:22px}
+.fleet[data-mode=mini] .rm-of{font-size:13px}
+.fleet[data-mode=install]{width:204px;animation:installIn .45s cubic-bezier(.2,.9,.3,1.3)}
+.fleet[data-mode=install] .rm-count::before{content:"";width:16px;height:16px;margin-right:6px;align-self:center;background:var(--endless);border:2px solid var(--ink)}
+@keyframes installIn{from{transform:scale(.6);opacity:0}}
+@media (prefers-reduced-motion:reduce){:root:not(.motion-on) .fleet,:root:not(.motion-on) .rm-grid i,:root:not(.motion-on) .net-chip{animation:none!important}}
+/* one more button in the bar: links keep their width (the row scrolls if it must), and the bar tightens a little */
+.links a{flex-shrink:0}
+@media (max-width:1180px) and (min-width:821px){.nav{gap:10px;padding-left:2vw;padding-right:2vw}.links a{padding:10px 8px}}

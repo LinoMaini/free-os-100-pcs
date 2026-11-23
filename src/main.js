@@ -1,5 +1,7 @@
 import { createStage } from './scene.js';
 import { initCrazy } from './crazy.js';
+import { initFleet } from './fleet.js';
+import { initOffline } from './offline.js';
 
 {
   // Many school PCs have Windows animations switched off, which browsers report as "reduce motion".
@@ -72,6 +74,8 @@ import { initCrazy } from './crazy.js';
     document.documentElement.classList.add('no-webgl');
   }
   initCrazy(stage, { reduceMotion });
+  initFleet({ reduceMotion });
+  initOffline();
 
   // the presentation starts after the opening world: the title pops and the stickers slap on when the hero first shows
   const hero = document.getElementById('top');
