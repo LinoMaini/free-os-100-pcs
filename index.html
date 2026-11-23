@@ -31,6 +31,13 @@
 </header>
 
 <main>
+  <section id="world" class="scene world" data-scene="world" data-stop="The mission" data-nav="top">
+    <div class="beat"><div class="card"><h2>100 donated PCs</h2><p>Asus is giving 100 desktop computers to an NGO.</p></div></div>
+    <div class="beat"><div class="card"><h2>2 billion people are still offline</h2><p>In low-income countries, only 32% of people use the internet.</p></div></div>
+    <div class="beat"><div class="card"><h2>Where they’re going, <span class="nowrap">Wi-Fi</span> and power come and go</h2><p>Many of the people who will use them have never had a computer.</p></div></div>
+    <div class="beat"><div class="card"><h2>Our job: pick the free system that works anyway</h2><p>Three finalists, one winner. Scroll to start.</p></div></div>
+  </section>
+
   <section id="top" class="scene hero" data-scene="top" data-stop="Their first computer" data-nav="top">
     <div class="hero-copy">
       <h1>Their first computer</h1>
@@ -52,6 +59,8 @@
       <span class="tag t-mint">Linux Mint</span><span class="tag t-zorin">Zorin OS Lite</span><span class="tag t-endless">Endless OS</span><span class="tag">100 PCs</span><span class="tag t-ink">€0 software</span><span class="tag">Works offline</span>
     </div>
   </div>
+
+  <section id="teardown" class="scene teardown" data-scene="teardown" data-stop="Inside the computer" data-nav="top" aria-label="Inside the computer: the parts, the chip, the code and the bits"></section>
 
   <section id="challenge" class="scene right" data-scene="challenge" data-stop="Who we’re choosing for" data-nav="challenge">
     <div class="card">
@@ -177,6 +186,14 @@
     </div>
   </section>
 
+  <section id="install" class="scene world install" data-scene="install" data-stop="How to install it" data-nav="plan" aria-label="How to install Endless OS on 100 PCs, in five steps">
+    <div class="beat"><div class="card"><h2><span class="stepn">1</span>Download Endless OS</h2><p>Pick the Full edition: its apps and content work offline. It needs a USB stick of 32&nbsp;GB or more.</p></div></div>
+    <div class="beat"><div class="card"><h2><span class="stepn">2</span>Make a reformatter USB</h2><p>In the Endless OS Installer for Windows, choose “Create Reformatter USB”. It can take a few hours.</p></div></div>
+    <div class="beat"><div class="card"><h2><span class="stepn">3</span>Boot the PC from the stick</h2><p>On an Asus PC, hold F2 and press power to open the BIOS. Press F8 for the Boot Menu and pick the USB stick.</p></div></div>
+    <div class="beat"><div class="card"><h2><span class="stepn">4</span>Let it reformat</h2><p>The stick copies Endless OS onto the PC. Unplug it and go to the next one: the same stick works again and again.</p></div></div>
+    <div class="beat"><div class="card"><h2><span class="stepn">5</span>10 sticks, 100 PCs</h2><p>With ten sticks, ten PCs install at once. Ten rounds and all 100 are ready.</p></div></div>
+  </section>
+
   <section id="plan" class="scene right" data-scene="plan" data-stop="From box to classroom" data-nav="plan">
     <div class="card">
       <h2>From box to classroom</h2>
@@ -202,6 +219,17 @@
       <ul class="team"><li>Lino Maini</li><li>Davide Miron</li><li>Dennis Boschi</li><li>Roberto Cacace</li></ul>
     </div>
   </section>
+
+  <article id="bonus" class="scene right os bonus" data-scene="bonus" data-stop="Fun fact: the heaviest system" data-nav="plan">
+    <div class="card">
+      <p class="count">Fun fact</p>
+      <h2><span class="chip c-zos">IBM z/OS</span></h2>
+      <p class="tagline">The heaviest system to run</p>
+      <p>z/OS is IBM’s operating system for its Z mainframes, the machines built for big business transactions. On top of the machine, IBM charges for the system every month.</p>
+      <dl class="facts"><div><dt>Weight</dt><dd>2,558 kg</dd><small>IBM z17, 4 frames</small></div><div><dt>Power</dt><dd>31 kW</dd><small>at most</small></div><div><dt>Memory</dt><dd>64 TB</dd><small>at most</small></div></dl>
+      <p>Prices aren’t public: for the previous model, estimates start around $500,000 for the hardware alone. Our 100 PCs run on €0 of software.</p>
+    </div>
+  </article>
 </main>
 
 <footer class="foot">
@@ -216,7 +244,17 @@
       <li><a href="https://access.endlessstudios.com/blog/endless-os-a-conversation-about-whats-changing-and-why-it-matters">The work on Endless OS 7 (Endless Access)</a></li>
       <li><a href="https://support.endlessos.org/en/endless-os/usb-updates">Updating Endless OS by USB (Endless)</a></li>
       <li><a href="https://support.endlessos.org/en/deployment/reformatter-usb/update-image">Reformatter USB (Endless)</a></li>
+      <li><a href="https://support.endlessos.org/deployment/reformatter-usb">One reformatter USB, many computers (Endless)</a></li>
+      <li><a href="https://support.endlessos.org/en/deployment/reformatter-usb/windows">Create Reformatter USB on Windows (Endless)</a></li>
+      <li><a href="https://support.endlessos.org/en/installation/windows-installer/endless-usb">USB stick size for Endless OS Full (Endless)</a></li>
+      <li><a href="https://www.asus.com/us/support/faq/1008829/">Entering the BIOS with F2 (Asus)</a></li>
+      <li><a href="https://www.asus.com/us/support/faq/1013017/">Boot Menu with F8 on desktops (Asus)</a></li>
       <li><a href="https://www.linuxpromagazine.com/Online/News/Endless-OS-a-Distribution-Without-Internet">Endless OS without internet (Linux Pro Magazine)</a></li>
+      <li><a href="https://www.itu.int/itu-d/reports/statistics/2026/10/13/ff26-foreword/">People online and offline, Facts and Figures 2026 (ITU)</a></li>
+      <li><a href="https://www.ibm.com/downloads/documents/us-en/1227a45bcbb087b3">IBM z17 data sheet (IBM)</a></li>
+      <li><a href="https://www.ibm.com/docs/en/module_1721331612225/pdf/GC28-7049-01.pdf">IBM z17 weight and power, planning manual (IBM)</a></li>
+      <li><a href="https://ibm.com/downloads/cas/GX2ROORV">Monthly license charges for z/OS (IBM)</a></li>
+      <li><a href="https://planetmainframe.com/?p=15736">Mainframe cost estimates (Planet Mainframe)</a></li>
     </ul>
   </div>
   <div>

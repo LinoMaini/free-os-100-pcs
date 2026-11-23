@@ -29,7 +29,9 @@ import { initCrazy } from './crazy.js';
   // az/el = camera orbit, zoom = distance factor, screen = what the monitor shows, bg = page colour,
   // inside = the world inside the computer (the camera dives through the screen), crowd/lit = the other 99 PCs.
   const SCENES = {
+    world:     { inside: 'globe', ax: 0.66, ay: 0.5, max: 0.5, may: 0.66, az: 0, el: 0, zoom: 0.72, mzoom: 0.95, bg: '#16123A' },
     top:       { ax: 0.77, ay: 0.54, max: 0.5, may: 0.8, az: -0.5, el: 0.12, zoom: 1.12, mzoom: 1.4, screen: 'hello', bg: '#FFE14D' },
+    teardown:  { inside: 'teardown', ax: 0.5, ay: 0.52, max: 0.5, may: 0.5, az: 0.22, el: 0.08, zoom: 0.62, mzoom: 0.9, bg: '#9FF2C8' },
     challenge: { ax: 0.27, ay: 0.52, max: 0.5, may: 0.28, az: 0.42, el: 0.3, zoom: 1.2, mzoom: 1.3, screen: 'grid100', crowd: 1, bg: '#FF9ECF' },
     method:    { inside: 'funnel', ax: 0.72, ay: 0.5, max: 0.5, may: 0.28, az: -0.2, el: 0.28, zoom: 1.05, crowd: 1, bg: '#B7A3FF' },
     mint:      { inside: 'mint', ax: 0.27, ay: 0.5, max: 0.5, may: 0.28, az: 0.32, el: 0.1, zoom: 1.0, bg: '#FF8F8F' },
@@ -39,7 +41,9 @@ import { initCrazy } from './crazy.js';
     energy:    { inside: 'energy', ax: 0.27, ay: 0.5, max: 0.5, may: 0.28, az: 0.45, el: 0.18, zoom: 1.05, bg: '#6EE2D0' },
     access:    { inside: 'access', ax: 0.74, ay: 0.5, max: 0.5, may: 0.28, az: -0.3, el: 0.12, zoom: 1.0, bg: '#FF9ECF' },
     pick:      { inside: 'pick', ax: 0.72, ay: 0.5, max: 0.5, may: 0.28, az: -0.15, el: 0.16, zoom: 1.0, bg: '#B7A3FF', confetti: true },
+    install:   { inside: 'install', ax: 0.66, ay: 0.5, max: 0.5, may: 0.34, az: 0.1, el: 0.12, zoom: 0.95, mzoom: 1.22, bg: '#5CE1E6' },
     plan:      { ax: 0.27, ay: 0.5, max: 0.5, may: 0.28, az: 0.45, el: 0.3, zoom: 1.2, mzoom: 1.3, screen: 'usb', crowd: 1, lit: 1, bg: '#FFE14D' },
+    bonus:     { inside: 'mainframe', ax: 0.27, ay: 0.52, max: 0.5, may: 0.28, az: 0.35, el: 0.16, zoom: 1.05, bg: '#A6C8FF' },
     end:       { ax: 0.72, ay: 0.52, max: 0.5, may: 0.28, az: -0.4, el: 0.22, zoom: 1.15, mzoom: 1.3, screen: 'smile', crowd: 1, lit: 1, bg: '#FFE14D', confetti: true },
   };
 
@@ -54,13 +58,32 @@ import { initCrazy } from './crazy.js';
       reduceMotion,
       flash: document.getElementById('flash'),
       burst: document.getElementById('burst'),
-      onBg: (hex) => { document.body.style.backgroundColor = hex; if (nav) nav.style.backgroundColor = hex; },
+      onBg: (hex) => {
+        document.body.style.backgroundColor = hex;
+        if (!nav) return;
+        nav.style.backgroundColor = hex;
+        // on the night sky of the opening world the bar's words turn white
+        const n = parseInt(hex.slice(1), 16), lum = (0.2126 * (n >> 16) + 0.7152 * ((n >> 8) & 255) + 0.0722 * (n & 255)) / 255;
+        nav.classList.toggle('on-dark', lum < 0.35);
+      },
     });
     document.fonts?.ready.then(() => stage.redrawText());
-  } catch (err) {
+  } catch (err) { console.error('stage failed', err?.stack || err);
     document.documentElement.classList.add('no-webgl');
   }
   initCrazy(stage, { reduceMotion });
+
+  // the presentation starts after the opening world: the title pops and the stickers slap on when the hero first shows
+  const hero = document.getElementById('top');
+  if (hero && 'IntersectionObserver' in window) {
+    const io = new IntersectionObserver((es) => {
+      if (!es.some((e) => e.isIntersecting)) return;
+      hero.classList.add('seen');
+      stage?.replayStickers?.();
+      io.disconnect();
+    }, { threshold: 0.45 });
+    io.observe(hero);
+  } else hero?.classList.add('seen');
 
   // ---------- count-up on "100" ----------
   const countEl = document.querySelector('[data-count]');
@@ -170,10 +193,11 @@ import { initCrazy } from './crazy.js';
   const DWELL = 6500;
 
   const html = document.documentElement;
-  const stopTop = (el) => Math.round(el.getBoundingClientRect().top + window.scrollY - navH());
+  // offsetTop, not the on-screen box: the sections skew like jelly while the page moves, which would shift the box
+  const stopTop = (el) => { let y = 0; for (let n = el; n; n = n.offsetParent) y += n.offsetTop; return Math.round(y - navH()); };
   let tweens = 0;
-  function scrollToEl(el, done, keepGoing = () => tour.on) {
-    const to = stopTop(el);
+  function scrollToEl(el, done, keepGoing = () => tour.on) { scrollToY(stopTop(el), done, keepGoing); }
+  function scrollToY(to, done, keepGoing = () => tour.on) {
     if (reduceMotion) { html.style.scrollBehavior = 'auto'; window.scrollTo(0, to); html.style.scrollBehavior = ''; done(); return; }
     const from = window.scrollY, dist = to - from, t0 = performance.now();
     const dur = Math.min(1600, 600 + Math.abs(dist) * 0.5);
@@ -200,14 +224,18 @@ import { initCrazy } from './crazy.js';
     tbName.textContent = stops[i].dataset.stop;
     tbFill.style.width = '0%';
     scrollToEl(stops[i], () => {
-      tour.left = DWELL;
+      const extra = reduceMotion ? 0 : Math.max(0, stops[i].offsetHeight - window.innerHeight * 1.2);
+      const dwell = DWELL + (extra / window.innerHeight) * 3200, y0 = window.scrollY;
+      tour.left = dwell;
       let last = performance.now();
       const tick = (now) => {
         if (!tour.on) return;
         if (!tour.paused) tour.left -= now - last;
         last = now;
-        tbFill.style.width = `${Math.min(100, (1 - tour.left / DWELL) * 100)}%`;
-        if (tour.left <= 0) go(i + 1);
+        const prog = Math.min(1, 1 - tour.left / dwell);
+        if (extra > 0) { html.style.scrollBehavior = 'auto'; window.scrollTo(0, y0 + extra * (prog < 0.5 ? 2 * prog * prog : 1 - (-2 * prog + 2) ** 2 / 2)); }
+        tbFill.style.width = `${prog * 100}%`;
+        if (tour.left <= 0) { if (extra > 0) html.style.scrollBehavior = ''; go(i + 1); }
         else tour.raf = requestAnimationFrame(tick);
       };
       tour.raf = requestAnimationFrame(tick);
@@ -277,16 +305,22 @@ import { initCrazy } from './crazy.js';
     const prev = e.key === 'PageUp' || e.key === 'ArrowLeft';
     if (!next && !prev) return;
     e.preventDefault();
-    const y = window.scrollY, tops = stops.map(stopTop);
+    const y = window.scrollY, H = window.innerHeight, tops = [];
+    // tall sections (the opening world, the opened computer) get a stop every 0.6 screens, so the clicker plays them
+    stops.forEach((el) => {
+      const t0 = stopTop(el);
+      tops.push(t0);
+      if (el.offsetHeight > H * 1.6) for (let t = t0 + H * 0.6; t < t0 + el.offsetHeight - H * 0.9; t += H * 0.6) tops.push(Math.round(t));
+    });
     let target;
-    if (jumpTo >= 0) target = Math.max(0, Math.min(stops.length - 1, jumpTo + (next ? 1 : -1)));
+    if (jumpTo >= 0) target = Math.max(0, Math.min(tops.length - 1, jumpTo + (next ? 1 : -1)));
     else {
       let i = -1;
       tops.forEach((t, k) => { if (t <= y + 4) i = k; });
-      target = next ? Math.min(stops.length - 1, i + 1) : (i >= 0 && y > tops[i] + 4 ? i : Math.max(0, i - 1));
+      target = next ? Math.min(tops.length - 1, i + 1) : (i >= 0 && y > tops[i] + 4 ? i : Math.max(0, i - 1));
     }
     const id = ++jump;
     jumpTo = target;
-    scrollToEl(stops[target], () => { if (id === jump) jumpTo = -1; }, () => id === jump);
+    scrollToY(tops[target], () => { if (id === jump) jumpTo = -1; }, () => id === jump);
   });
 }

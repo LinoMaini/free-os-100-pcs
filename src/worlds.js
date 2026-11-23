@@ -4,6 +4,9 @@ import * as THREE from 'three';
 import { COLORS } from './screens.js';
 import { lerp, smooth, clamp01, easeOutBack, easeOutCubic, PAL, toon, toonNew, part, rbox, outlineMat, makeLabel, sfx } from './kit.js';
 import { UI_W, UI_H, drawMint, drawZorin, drawEndless } from './osui.js';
+import { addAbsurdWorlds } from './worlds2.js';
+import { addGlobeWorld } from './worlds3.js';
+import { addInstallWorld } from './worlds4.js';
 
 const dummy = new THREE.Object3D();
 
@@ -918,5 +921,8 @@ export function buildWorlds() {
     };
   }
 
+  addAbsurdWorlds(W);
+  addGlobeWorld(W);
+  addInstallWorld(W);
   return W;
 }

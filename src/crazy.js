@@ -4,13 +4,15 @@
 import { sfx } from './kit.js';
 import { initViewer } from './viewer.js';
 import { perf } from './perf.js';
+import { initAbsurd } from './absurd.js';
 
 const PAL = ['#FF9ECF', '#7CC8FF', '#C8EE5A', '#B7A3FF', '#FF8F8F', '#FFFFFF', '#2FBF71', '#3D7BFF', '#FF7A1A'];
 
 export function initCrazy(stage, { reduceMotion }) {
   const fine = window.matchMedia('(pointer: fine)').matches;
-  let mode = 0; // 0 normal, 1 party, 2 chaos
+  let mode = 0; // 0 normal, 1 party, 2 chaos, 3 absurd (chaos + kaleidoscope)
   const viewer = initViewer(stage, { reduceMotion });
+  initAbsurd(stage, { reduceMotion });
 
   // ---------- sound: off until the visitor turns it on ----------
   const audio = { ctx: null, on: false, noise: null, out: null };
@@ -81,8 +83,8 @@ export function initCrazy(stage, { reduceMotion }) {
     if (s % 4 === 0) tone('sine', 150, 42, t, 0.28, 0.9);
     if (s % 8 === 4) { noise(t, 0.16, 0.32, 'bandpass', 1800, 0.8); tone('triangle', 200, 120, t, 0.1, 0.15); }
     if (s % 2 === 1) noise(t, 0.05, s % 4 === 3 ? 0.08 : 0.045, 'highpass', 7000);
-    if (s % 2 === 0) tone('sawtooth', 55 * 2 ** (SCALE[BASS[(s / 2) % 16]] / 12), 0, t, 0.17, mode === 2 ? 0.12 : 0.08);
-    if (mode === 2 && s % 4 === 2) tone('square', 440 * 2 ** (SCALE[(s * 3) % 8] / 12), 0, t, 0.09, 0.04);
+    if (s % 2 === 0) tone('sawtooth', 55 * 2 ** (SCALE[BASS[(s / 2) % 16]] / 12), 0, t, 0.17, mode >= 2 ? 0.12 : 0.08);
+    if (mode >= 2 && s % 4 === 2) tone('square', 440 * 2 ** (SCALE[(s * 3) % 8] / 12), 0, t, 0.09, 0.04);
   };
   const schedule = () => {
     const c = ac();
@@ -117,11 +119,13 @@ export function initCrazy(stage, { reduceMotion }) {
   window.addEventListener('keydown', (e) => {
     if (e.key !== 'p' && e.key !== 'P') return;
     if (e.metaKey || e.ctrlKey || e.altKey || e.target.closest?.('input,textarea,select')) return;
-    mode = (mode + 1) % 3;
+    mode = (mode + 1) % 4;
     document.body.classList.toggle('party', mode >= 1);
-    document.body.classList.toggle('chaos', mode === 2);
+    document.body.classList.toggle('chaos', mode >= 2);
+    document.body.classList.toggle('absurd', mode === 3);
     stage?.setParty(mode >= 1);
-    stage?.setChaos?.(mode === 2);
+    stage?.setChaos?.(mode >= 2);
+    stage?.setKaleido?.(mode === 3);
     if (mode) sfx.tada();
     syncBeat();
   });
@@ -201,7 +205,7 @@ export function initCrazy(stage, { reduceMotion }) {
 
   // ---------- a trail of little stickers behind the pointer ----------
   let tctx = null, parts = [], lastPx = -99, lastPy = -99, drawn = false;
-  if (fine && !reduceMotion) {
+  if (false) { // the sticker trail is switched off in this copy
     const trail = document.createElement('canvas');
     trail.id = 'trail';
     trail.setAttribute('aria-hidden', 'true');
@@ -241,7 +245,7 @@ export function initCrazy(stage, { reduceMotion }) {
     if (tctx && perf.level < 3 && Math.hypot(tx - lastPx, ty - lastPy) > 7) {
       lastPx = tx;
       lastPy = ty;
-      for (let k = 0; k < (mode === 2 ? 3 : 1); k++) {
+      for (let k = 0; k < (mode >= 2 ? 3 : 1); k++) {
         parts.push({ x: tx, y: ty, vx: (Math.random() - 0.5) * 140, vy: (Math.random() - 0.5) * 140 - 50, r: Math.random() * 6, vr: (Math.random() - 0.5) * 8,
           s: 6 + Math.random() * 9, life: 0.75, kind: Math.floor(Math.random() * 3), c: PAL[Math.floor(Math.random() * PAL.length)] });
       }
@@ -261,11 +265,11 @@ export function initCrazy(stage, { reduceMotion }) {
     if (!reduceMotion) {
       if (now - lastRate > 100) {
         lastRate = now;
-        const rate = 1 + Math.min(5, Math.abs(v) / 400) + (mode === 2 ? 2 : 0);
+        const rate = 1 + Math.min(5, Math.abs(v) / 400) + (mode >= 2 ? 2 : 0);
         marquees.forEach((m, k) => m.getAnimations?.({ subtree: true }).forEach((a) => { a.playbackRate = rate * (k ? 1.3 : 1); }));
       }
       // the whole page wobbles like jelly with the scroll speed (not on slow graphics, where it costs too much)
-      const target = perf.level >= 2 ? 0 : Math.max(-9, Math.min(9, v * 0.0028)) + (mode === 2 ? Math.sin(t * 7) * 2.5 : 0);
+      const target = perf.level >= 2 ? 0 : Math.max(-9, Math.min(9, v * 0.0028)) + (mode >= 2 ? Math.sin(t * 7) * 2.5 : 0);
       skewV += ((target - skew) * 90 - skewV * 11) * dt;
       skew += skewV * dt;
       const sv = Math.abs(skew) < 0.02 ? '' : `skewY(${skew.toFixed(2)}deg)`;
@@ -277,15 +281,15 @@ export function initCrazy(stage, { reduceMotion }) {
         const dx = L.bx - window.scrollX - tx, dy = L.by - window.scrollY - ty, dist = Math.hypot(dx, dy) || 1;
         const f = Math.max(0, 1 - dist / 170);
         const gx = (dx / dist) * f * 42;
-        const gy = (dy / dist) * f * 42 + Math.sin(t * 3 + L.i * 0.55) * (mode === 2 ? 12 : 4);
-        const gr = f * Math.sign(dx) * 28 + Math.sin(t * 2 + L.i) * (mode === 2 ? 12 : 2);
+        const gy = (dy / dist) * f * 42 + Math.sin(t * 3 + L.i * 0.55) * (mode >= 2 ? 12 : 4);
+        const gr = f * Math.sign(dx) * 28 + Math.sin(t * 2 + L.i) * (mode >= 2 ? 12 : 2);
         const gs = 1 + f * 0.4;
         L.vx += ((gx - L.x) * 160 - L.vx * 13) * dt; L.x += L.vx * dt;
         L.vy += ((gy - L.y) * 160 - L.vy * 13) * dt; L.y += L.vy * dt;
         L.vr += ((gr - L.r) * 160 - L.vr * 13) * dt; L.r += L.vr * dt;
         L.vs += ((gs - L.s) * 160 - L.vs * 13) * dt; L.s += L.vs * dt;
         L.el.style.transform = `translate(${L.x.toFixed(1)}px,${L.y.toFixed(1)}px) rotate(${L.r.toFixed(1)}deg) scale(${L.s.toFixed(3)})`;
-        const col = f > 0.25 || mode === 2 ? PAL[(L.i + (mode === 2 ? Math.floor(t * 7) : 0)) % PAL.length] : '';
+        const col = f > 0.25 || mode >= 2 ? PAL[(L.i + (mode >= 2 ? Math.floor(t * 7) : 0)) % PAL.length] : '';
         if (col !== L.col) { L.col = col; L.el.style.color = col; L.el.classList.toggle('lit', !!col); }
       }
     }
