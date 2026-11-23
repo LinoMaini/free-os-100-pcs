@@ -1,5 +1,5 @@
 // Graphics quality for the 3D stage, so the site stays smooth on school PCs.
-// 0 full · 1 pixel ratio 1 · 2 fewer samples, smaller portal · 3 lightest (software or very slow graphics).
+// 0 full · 1 fewer pixels (phones start here) · 2 pixel ratio 1, no extra samples · 3 lightest (software or very slow graphics).
 // It starts from what the graphics chip is, then steps down while the frame rate stays low.
 // ?q=0…3 in the address fixes the level by hand.
 export const perf = {
@@ -32,6 +32,8 @@ export function detectGpu(gl) {
   // older Intel graphics on Windows (most school desktops): start without the extra pixels
   else if (/intel/i.test(name) && /direct3d|d3d/i.test(name) && !/iris\(r\) xe|iris xe|\barc\b/i.test(name)) perf.set(1);
   else if ((navigator.hardwareConcurrency || 8) <= 2) perf.set(2);
+  // phones and tablets: many pixels for a small chip, so they start one step lighter
+  else if (window.matchMedia?.('(pointer: coarse)').matches && Math.min(screen.width, screen.height) < 900) perf.set(1);
 }
 
 // Called once per frame with the real frame time. Every 2 s it checks the average:

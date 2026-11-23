@@ -1,15 +1,14 @@
-// The absurd layer:
+// The toys of the party modes (nothing here runs in normal mode):
 //   hold the mouse on an empty spot  a black hole sucks the page into the pointer; let go and it all springs back
 //   hold R  rewind the page like a VHS tape
-//   scroll past the end (or press → / PageDown there)  a wormhole throws you back to the top
+//   press → or PageDown at the very end  a wormhole throws you back to the top
 import { sfx } from './kit.js';
-import { perf } from './perf.js';
 
 const PAL = ['#FF9ECF', '#7CC8FF', '#C8EE5A', '#B7A3FF', '#FF8F8F', '#FFE14D', '#2FBF71', '#3D7BFF', '#FF7A1A'];
 const BODY_SEL = '.hero h1 .l, .hero .lead, .hero .actions .btn, .hero .byline, .card, .logo, .links a, #soundBtn, #motionBtn, #tourBtn, .marquee';
 const EMPTY_SKIP = 'a,button,input,label,select,textarea,.card,.marquee,.nav,.foot,.tourbar,.hero-copy,.osv';
 
-export function initAbsurd(stage, { reduceMotion }) {
+export function initAbsurd(stage, { reduceMotion, mode = () => 0 }) {
   if (reduceMotion) return { get busy() { return false; } };
   const html = document.documentElement;
   let px = innerWidth / 2, py = innerHeight / 2;
@@ -40,7 +39,7 @@ export function initAbsurd(stage, { reduceMotion }) {
   // ======================= black hole =======================
   const hole = { on: false, armed: 0, t: 0, backT: 0, x: 0, y: 0, bodies: [], back: false };
   window.addEventListener('pointerdown', (e) => {
-    if (e.button !== 0 || hole.on || html.classList.contains('osv-lock')) return;
+    if (mode() < 1 || e.pointerType !== 'mouse' || e.button !== 0 || hole.on || html.classList.contains('osv-lock')) return;
     if (e.target.closest?.(EMPTY_SKIP)) return;
     const x = e.clientX, y = e.clientY;
     clearTimeout(hole.armed);
@@ -54,7 +53,8 @@ export function initAbsurd(stage, { reduceMotion }) {
       flyingNow();
       stage?.setHole?.(x, y, 1);
       sfx.whoosh();
-    }, 320);
+      run();
+    }, 420);
   });
   window.addEventListener('pointermove', () => {
     if (hole.on && !hole.back) { hole.x = px; hole.y = py; stage?.setHole?.(px, py, 1); }
@@ -65,7 +65,7 @@ export function initAbsurd(stage, { reduceMotion }) {
     hole.back = true;
     hole.backT = performance.now();
     stage?.setHole?.(hole.x, hole.y, 0);
-    stage?.burstAt?.(hole.x, hole.y);
+    stage?.burstAt?.(hole.x, hole.y, true);
     sfx.tada();
     for (const b of hole.bodies) { b.vx = (Math.random() - 0.5) * 900; b.vy = (Math.random() - 0.5) * 900; b.va = b.spin * 900; }
   };
@@ -110,8 +110,8 @@ export function initAbsurd(stage, { reduceMotion }) {
   // ======================= R: rewind =======================
   const vhs = { on: false, v: 0 };
   window.addEventListener('keydown', (e) => {
-    if ((e.key === 'r' || e.key === 'R') && !e.metaKey && !e.ctrlKey && !e.altKey && !e.target.closest?.('input,textarea,select')) {
-      if (!vhs.on) { vhs.on = true; vhs.v = 0; stage?.setVhs?.(1); sfx.whoosh(); html.style.scrollBehavior = 'auto'; }
+    if ((e.key === 'r' || e.key === 'R') && mode() >= 1 && !e.metaKey && !e.ctrlKey && !e.altKey && !e.target.closest?.('input,textarea,select,[contenteditable]') && !html.classList.contains('osv-lock')) {
+      if (!vhs.on) { vhs.on = true; vhs.v = 0; stage?.setVhs?.(1); sfx.whoosh(); html.style.scrollBehavior = 'auto'; run(); }
       e.preventDefault();
     }
   });
@@ -119,25 +119,20 @@ export function initAbsurd(stage, { reduceMotion }) {
     if ((e.key === 'r' || e.key === 'R') && vhs.on) { vhs.on = false; stage?.setVhs?.(0); html.style.scrollBehavior = ''; }
   });
 
-  // ======================= the end loops back to the top =======================
-  let pushPast = 0;
+  // ======================= the end loops back to the top (party modes, keyboard only) =======================
   const atBottom = () => window.scrollY + innerHeight >= document.documentElement.scrollHeight - 3;
   const loopBack = () => stage?.warp?.(() => window.scrollTo({ top: 0, left: 0, behavior: 'instant' }));
-  window.addEventListener('wheel', (e) => {
-    if (hole.on || !atBottom() || e.deltaY <= 0) { pushPast = Math.max(0, pushPast - 40); return; }
-    pushPast += e.deltaY;
-    if (pushPast > 500) { pushPast = 0; loopBack(); }
-  }, { passive: true });
   window.addEventListener('keydown', (e) => {
-    if ((e.key === 'PageDown' || e.key === 'ArrowRight') && atBottom() && !html.classList.contains('osv-lock') && !e.target.closest?.('input,textarea,select')) {
+    if (mode() >= 1 && (e.key === 'PageDown' || e.key === 'ArrowRight') && atBottom() && !html.classList.contains('osv-lock') && !e.target.closest?.('input,textarea,select,[contenteditable]')) {
       e.preventDefault(); // the section-stepping keys would otherwise pull the page back to the last stop
       loopBack();
     }
   });
 
-  // ======================= one loop =======================
-  let last = performance.now();
-  const loop = (now) => {
+  // ======================= one loop, running only while a toy is on =======================
+  let last = performance.now(), running = false;
+  function run() { if (!running) { running = true; last = performance.now(); requestAnimationFrame(loop); } }
+  function loop(now) {
     const dt = Math.min(0.1, Math.max(0.001, (now - last) / 1000));
     last = now;
     const n = Math.min(6, Math.ceil(dt / 0.017)), h = dt / n;
@@ -146,8 +141,8 @@ export function initAbsurd(stage, { reduceMotion }) {
       vhs.v = Math.min(2400, vhs.v + dt * 3600);
       if (window.scrollY > 0) window.scrollBy(0, -vhs.v * dt);
     }
-    requestAnimationFrame(loop);
-  };
-  requestAnimationFrame(loop);
+    if (hole.on || vhs.on) requestAnimationFrame(loop);
+    else running = false;
+  }
   return { get busy() { return hole.on; } };
 }

@@ -14,7 +14,7 @@ This repository holds our school presentation's website: a one-page, 3D, sticker
 
 - **Keys:** a presentation clicker (PageDown / PageUp) or the → ← arrows jump between the sections, even without the tour. **F** switches full screen on and off.
 - **Animations switch:** many school PCs have Windows animations turned off, which the browser reports as "reduce motion", so the site would stay still. When that happens a sparkle button appears in the top bar: press it once to turn the animations back on (that computer remembers it). Opening the page with `?motion=on` does the same.
-- **Speed:** the site checks the graphics chip and the frame rate, and on a slow PC it draws the 3D with fewer pixels and lighter effects. `?q=0` to `?q=3` fixes the level by hand (0 full, 3 lightest).
+- **Speed:** the 3D is drawn straight to the screen with the graphics chip's own antialiasing; the extra full-screen pass only runs during the dive and in the party modes, and when nothing moves for a few seconds the site draws at 30 frames a second. It also checks the graphics chip and the frame rate: phones start one step lighter, and a slow PC gets fewer pixels. `?q=0` to `?q=3` fixes the level by hand (0 full, 3 lightest).
 - The fonts come with the site, so it looks the same on networks that block font services.
 
 ## What it does
@@ -26,9 +26,10 @@ This repository holds our school presentation's website: a one-page, 3D, sticker
 - Inside the computer, each finalist's desktop (Linux Mint, Zorin OS Lite, Endless OS) is redrawn layer by layer: as you scroll through its section, windows and menus open, the pointer clicks, and the layers come apart in depth. The icons are generic drawings, not the official logos.
 - Click a desktop, or the monitor button next to a system's name, to open a small desktop that really works. Windows move, resize, minimise and maximise; the menu searches; the clock is live and the Wi-Fi is offline. Apps: Files, Text Editor, Calculator, Web Browser (offline, with a jumping game), Paint, Snake, Terminal, Encyclopedia (works without internet), Typing, Photos and Settings, plus the App Center on Endless OS. What you make stays in the page; nothing is saved on the computer. Switch systems with the tabs, the arrow buttons or ← →; Esc closes.
 - The dive spins through the glass like a corkscrew, with a rainbow flash; each new section's colour spreads out of the 3D object in a star shape, under swirling rays.
-- On the 3D canvas: colour fringes that grow with the scroll speed, a fisheye in the dive, a glitch on every section change and a shockwave where you click. The title's letters dodge the pointer, the page wobbles when you scroll fast, a sticker trail follows the pointer and small PCs rain down.
-- Hold the mouse on an empty spot for a black hole, hold **R** to rewind the page like a tape, and scroll past the end to be thrown back to the top through a wormhole.
-- Click any empty spot to make cubes burst out of it, or click the computer for a backflip. Press **P** to cycle normal → party → chaos → normal. The speaker button in the menu turns sound on (off by default); in party and chaos mode it plays a beat.
+- The dive through the screen has a fisheye and colour fringes; small PCs rain down behind the title.
+- **Party modes:** the popper button in the top bar (or **P**) goes normal → party → chaos → kaleidoscope → normal, with a sticker saying which one is on. In the party modes: a beat (with sound on), rainbow background, dancing letters, glitches, hold the mouse on an empty spot for a black hole, hold **R** to rewind the page like a tape, and **→** at the very end throws you back to the top through a wormhole. In normal mode none of this starts on its own.
+- A small USB stick with eyes rides along the top bar as you scroll, showing how far you are.
+- With a mouse, click any empty spot to make cubes burst out of it, or click the computer for a backflip. Press **P** to cycle normal → party → chaos → normal. The speaker button in the menu turns sound on (off by default); in party and chaos mode it plays a beat.
 - **Play the tour** scrolls through the whole story by itself. During the tour, the arrow keys or a presentation clicker move between stops; Esc stops it.
 - An interactive scorecard: change how much each criterion matters and watch the ranking move.
 - Works without WebGL (static drawing) and respects the system's "reduce motion" setting (see the animations switch above).

@@ -343,6 +343,9 @@ export function addAbsurdWorlds(W) {
         const lvl = Z < 4 ? 1 : Z < 60 ? 2 : Z < A4 ? 3 : Z < A5 ? 4 : 5;
         if (lvl > lastLevel.n && lastLevel.n) sfx.pop(260 + lvl * 140);
         lastLevel.n = lvl;
+        // the caption on the page: the parts, the chip, the code, the bits
+        const cap = Math.min(4, lvl);
+        if (cap !== lastLevel.cap) { lastLevel.cap = cap; document.documentElement.dataset.td = String(cap); }
 
         // level 1
         const open = smooth(0.03, 0.13, q), fly = smooth(0.12, 0.2, q);

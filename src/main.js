@@ -193,7 +193,7 @@ import { initCrazy } from './crazy.js';
   const DWELL = 6500;
 
   const html = document.documentElement;
-  // offsetTop, not the on-screen box: the sections skew like jelly while the page moves, which would shift the box
+  // offsetTop, not the on-screen box: an element moving in a party mode would shift the box
   const stopTop = (el) => { let y = 0; for (let n = el; n; n = n.offsetParent) y += n.offsetTop; return Math.round(y - navH()); };
   let tweens = 0;
   function scrollToEl(el, done, keepGoing = () => tour.on) { scrollToY(stopTop(el), done, keepGoing); }

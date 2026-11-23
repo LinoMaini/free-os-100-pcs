@@ -279,7 +279,7 @@ export function addGlobeWorld(W) {
     return { d: new THREE.Vector3(Math.sin(b) * Math.cos(a), Math.cos(b), Math.sin(b) * Math.sin(a)), s: 0.5 + ((i * 0.37) % 1) };
   });
   spin.add(confetti);
-  let burstDone = false;
+  let burstDone = false, introClock = 0;
 
   // ---- a satellite going round, its signal beam stuttering ----
   const sat = new THREE.Group();
@@ -330,11 +330,13 @@ export function addGlobeWorld(W) {
   W.globe = {
     group,
     update(t, dt, reduce, sp = 0) {
+      // the light-speed arrival plays once per visit to the page, not again when you scroll back up
+      introClock = Math.min(2, introClock + dt);
       // the section starts already a bit in: map the visible part of it to 0…1
       const q = reduce ? 0.62 : clamp01((sp - 0.13) / 0.65);
       const fly = smooth(0.15, 0.55, q), zoomK = ease(smooth(0.7, 1.0, q));
       const launch = reduce ? 1 : smooth(0.03, 0.15, q); // the box climbs, then bursts at 1
-      const pop = reduce ? 1 : easeOutBack(clamp01((t - 0.35) / 0.9));
+      const pop = reduce ? 1 : easeOutBack(clamp01((introClock - 0.35) / 0.9));
 
       // turn the globe: Taipei, then follow the PCs to Africa, then centre the school
       const toAf = ease(smooth(0.16, 0.55, q));
@@ -349,7 +351,7 @@ export function addGlobeWorld(W) {
       clouds.rotation.y = reduce ? 0 : t * 0.02;
 
       // light-speed arrival: star streaks shrink to dots and the globe pops in (first second and a half)
-      const wk = reduce ? 1 : clamp01(t / 1.5);
+      const wk = reduce ? 1 : clamp01(introClock / 1.5);
       warp.visible = wk < 1;
       if (warp.visible) {
         const len = (1 - wk) ** 2 * 9;

@@ -27,7 +27,7 @@ const setSrgb = (v, hex = PAL.yellow) => {
 const BG_FRAG = `varying vec2 vUv;
 uniform vec2 uRes, uCenter;
 uniform vec3 uColA, uColB;
-uniform float uWipe, uSpin, uParty, uTime, uBeat, uChaos;
+uniform float uWipe, uSpin, uParty, uTime, uBeat, uChaos, uLin;
 vec3 hsv(float h){ vec3 p = abs(fract(h + vec3(0.0, 2.0 / 3.0, 1.0 / 3.0)) * 6.0 - 3.0); return mix(vec3(1.0), clamp(p - 1.0, 0.0, 1.0), 0.55); }
 vec3 toLinear(vec3 c){ return mix(c / 12.92, pow((c + 0.055) / 1.055, vec3(2.4)), step(0.04045, c)); }
 void main(){
@@ -44,11 +44,13 @@ void main(){
   vec2 g = mod(p, 18.0) - 9.0;
   float dr = (3.3 + uBeat * 2.4) * smoothstep(0.22, 0.9, r / R);
   col = mix(col, col * 0.84, 1.0 - smoothstep(dr - 0.7, dr + 0.7, length(g)));
-  gl_FragColor = vec4(toLinear(mix(col, vec3(0.0), ring * 0.9)), 1.0);
+  vec3 o = mix(col, vec3(0.0), ring * 0.9);
+  gl_FragColor = vec4(uLin > 0.5 ? toLinear(o) : o, 1.0);
 }`;
 
 // Post-processing over the whole canvas: fisheye in the dive, click shockwaves, glitch slices,
-// colour fringes that grow with scroll speed, film grain and faint scanlines.
+// colour fringes, film grain and scanlines. Only used while something needs it (the dive, party modes):
+// the rest of the time the 3D is drawn straight to the screen, which is much lighter.
 const POST_FRAG = `uniform sampler2D tDiffuse;
 uniform vec2 uRes;
 uniform float uTime, uAberr, uBarrel, uGlitch, uGrain, uScan, uKaleido, uWarp, uVhs;
@@ -125,10 +127,22 @@ export function createStage(canvas, scenes, sections, opts = {}) {
   const onBg = opts.onBg || (() => {});
   const flash = opts.flash || null;
   const burstEl = opts.burst || null;
-  const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, alpha: true, powerPreference: 'high-performance' });
+  // software graphics (or ?q=3) get no antialiasing; everything else gets the screen's own, which is cheap
+  const soft = (() => {
+    if (/[?&]q=3\b/.test(location.search)) return true;
+    try {
+      const c = document.createElement('canvas'), gl = c.getContext('webgl2') || c.getContext('webgl');
+      if (!gl) return false;
+      const ext = gl.getExtension('WEBGL_debug_renderer_info');
+      const name = String(gl.getParameter(ext ? ext.UNMASKED_RENDERER_WEBGL : gl.RENDERER) || '');
+      gl.getExtension('WEBGL_lose_context')?.loseContext();
+      return /swiftshader|llvmpipe|softpipe|basic render|software/i.test(name);
+    } catch (e) { return false; }
+  })();
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: !soft, alpha: true, powerPreference: 'high-performance' });
   detectGpu(renderer.getContext());
   // per quality level: pixel ratio cap, MSAA samples, size of the picture inside the monitor
-  const Q = [{ pr: 1.5, ms: 4, portal: 1024 }, { pr: 1, ms: 4, portal: 1024 }, { pr: 1, ms: 2, portal: 768 }, { pr: 0.75, ms: 0, portal: 512 }];
+  const Q = [{ pr: 1.5, ms: 4, portal: 1024 }, { pr: 1.25, ms: 2, portal: 1024 }, { pr: 1, ms: 0, portal: 768 }, { pr: 0.75, ms: 0, portal: 512 }];
   renderer.setClearColor(0x000000, 0);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   for (const s of Object.values(scenes)) s._bg = new THREE.Color(s.bg || PAL.yellow);
@@ -145,7 +159,7 @@ export function createStage(canvas, scenes, sections, opts = {}) {
   const bgU = {
     uRes: { value: new THREE.Vector2(1, 1) }, uCenter: { value: new THREE.Vector2(0.5, 0.5) },
     uColA: { value: new THREE.Vector3(1, 0.88, 0.3) }, uColB: { value: new THREE.Vector3(1, 0.88, 0.3) },
-    uWipe: { value: 0 }, uSpin: { value: 0 }, uParty: { value: 0 }, uTime: { value: 0 }, uBeat: { value: 0 }, uChaos: { value: 0 },
+    uWipe: { value: 0 }, uSpin: { value: 0 }, uParty: { value: 0 }, uTime: { value: 0 }, uBeat: { value: 0 }, uChaos: { value: 0 }, uLin: { value: 0 },
   };
   const bgScene = new THREE.Scene();
   const bgQuad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), new THREE.ShaderMaterial({
@@ -171,7 +185,7 @@ export function createStage(canvas, scenes, sections, opts = {}) {
   const mainRT = new THREE.WebGLRenderTarget(1, 1, { samples: Q[perf.level].ms });
   postU.tDiffuse.value = mainRT.texture;
   const mainRT2 = new THREE.WebGLRenderTarget(1, 1, { samples: Q[perf.level].ms });
-  let flipRT = false, drosteOn = true;
+  let flipRT = false, drosteOn = true; // the screen-in-the-screen picture: party mode only
   const DROSTE = new Set(['hello', 'smile']);
   const dbs = new THREE.Vector2();
   const easeInOutCubic = (t) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2);
@@ -409,6 +423,21 @@ export function createStage(canvas, scenes, sections, opts = {}) {
     // a tall section (a scrolly story) holds its scene for its whole length, not just at its centre
     spans = rects.map(([top, h]) => (h > H * 1.6 ? [top + H * 0.5, top + h - H * 0.5] : [top + h / 2, top + h / 2]));
   }
+  // On a phone the hero's words fill the top of the screen: the computer and its stickers sit in the space below.
+  const heroSec = document.getElementById('top'), heroCopy = document.querySelector('.hero-copy');
+  const TOP0 = scenes.top ? { may: scenes.top.may, mzoom: scenes.top.mzoom } : null;
+  let textLine = 0.66;
+  function fitHero() {
+    if (!TOP0 || !heroSec || !heroCopy) return;
+    if (!mobile) { scenes.top.may = TOP0.may; scenes.top.mzoom = TOP0.mzoom; return; }
+    // the words end where its last visible line ends (the box itself keeps empty room below for the 3D)
+    let bottom = 0;
+    for (const el of heroCopy.children) { const r = el.getBoundingClientRect(); if (r.height > 0) bottom = Math.max(bottom, r.bottom); }
+    textLine = clamp01((bottom - heroSec.getBoundingClientRect().top) / H);
+    const free = Math.max(0.14, 1 - textLine);
+    scenes.top.may = Math.min(0.92, Math.max(TOP0.may, textLine + free * 0.55));
+    scenes.top.mzoom = Math.min(2.8, Math.max(TOP0.mzoom, 4.2 / (0.536 * baseDist * free * 0.9)));
+  }
   function resize() {
     W = window.innerWidth;
     H = window.innerHeight;
@@ -426,10 +455,14 @@ export function createStage(canvas, scenes, sections, opts = {}) {
     camera.updateProjectionMatrix();
     tunnelShow = -1;
     measure();
+    fitHero();
   }
 
   const cur = { ax: 0.7, ay: 0.5, az: -0.4, el: 0.1, zoom: 1, dive: 0, crowd: 0, lit: 0, px: 0, py: 0 };
   let pointerX = 0, pointerY = 0;
+  let lastActive = performance.now(), skipFrame = false;
+  const wake = () => { lastActive = performance.now(); };
+  for (const ev of ['scroll', 'pointermove', 'pointerdown', 'keydown', 'wheel', 'touchstart', 'resize']) window.addEventListener(ev, wake, { passive: true });
   if (!reduce && window.matchMedia('(pointer: fine)').matches) {
     window.addEventListener('pointermove', (e) => { pointerX = (e.clientX / W) * 2 - 1; pointerY = (e.clientY / H) * 2 - 1; }, { passive: true });
   }
@@ -473,16 +506,20 @@ export function createStage(canvas, scenes, sections, opts = {}) {
   let lastDominant = null, lastHex = '', lastFlash = -1, lastFlashHex = '', portalOn = false;
   let lastSY = window.scrollY, vel = 0, spin = 0, party = 0, partyOn = false, partyT = 0, introT = reduce ? 99 : 0, prevDv = 0, lastBurst = -1, lastInside = false;
   let chaos = 0, chaosOn = false, glitchT = 0, flipT = 1, ripIdx = 0, orbitA = 0, beatPulse = 0;
-  let kaleido = 0, kaleidoOn = false, vhs = 0, vhsOn = 0, holeX = 0.5, holeY = 0.5, holeS = 0, holeOn = 0, warpT = -1, warpPeak = null;
+  let kaleido = 0, kaleidoOn = false, vhs = 0, vhsOn = 0, holeX = 0.5, holeY = 0.5, holeS = 0, holeOn = 0, warpT = -1, warpPeak = null, lastRipple = -99;
   const osBox = new THREE.Box3(), osV = new THREE.Vector3();
   const lastLook = new THREE.Vector3(), ray = new THREE.Raycaster(), ndc = new THREE.Vector2(), plane = new THREE.Plane(), hitV = new THREE.Vector3(), dirV = new THREE.Vector3();
   let time = 0, lastT = performance.now();
   function frame(now = performance.now()) {
     if (paused) { lastT = now; raf = requestAnimationFrame(frame); return; }
+    // nobody scrolling, pointing or typing for a while and nothing in flight: draw every other frame (30 fps),
+    // which halves the work while the presenter talks; any input brings 60 fps back at once
+    const calm = now - lastActive > 2500 && (reduce || (party < 0.01 && chaos < 0.01 && flipT >= 1 && warpT < 0 && holeS < 0.002 && glitchT <= 0 && time - lastRipple > 1.5 && Math.abs(cur.dive - Math.round(cur.dive)) < 0.002));
+    if (calm && (skipFrame = !skipFrame)) { raf = requestAnimationFrame(frame); return; }
     const dtReal = (now - lastT) / 1000;
     const dt = Math.min(dtReal, 0.05);
     lastT = now;
-    perfTick(dtReal);
+    if (!calm) perfTick(dtReal);
     time += dt;
     const tg = target();
     const k = reduce ? 1 : 1 - Math.exp(-dt * 4.5);
@@ -527,7 +564,7 @@ export function createStage(canvas, scenes, sections, opts = {}) {
 
     const dominant = tg.e < 0.5 ? tg.a : tg.b;
     if (dominant.confetti && lastDominant !== dominant && !reduce) (dominant.inside ? inConf : outConf).burst();
-    if (lastDominant && lastDominant !== dominant && !reduce) glitchT = 0.35;
+    if (lastDominant && lastDominant !== dominant && !reduce && chaos > 0.5) glitchT = 0.35;
     lastDominant = dominant;
 
     // ---------- outside ----------
@@ -538,7 +575,7 @@ export function createStage(canvas, scenes, sections, opts = {}) {
       } else {
         if (portalOn) { portalOn = false; scrA.material.needsUpdate = true; }
         const prevTex = (flipRT ? mainRT : mainRT2).texture;
-        const useDro = drosteOn && perf.level < 3;
+        const useDro = drosteOn && party > 0.5 && perf.level < 2;
         scrA.material.map = useDro && DROSTE.has(tg.a.screen || 'hello') ? prevTex : texs[tg.a.screen || 'hello'];
         scrB.material.map = useDro && DROSTE.has(tg.b.screen || 'hello') ? prevTex : texs[tg.b.screen || 'hello'];
         scrB.material.opacity = tg.a.screen === tg.b.screen ? 0 : tg.mix;
@@ -554,7 +591,7 @@ export function createStage(canvas, scenes, sections, opts = {}) {
         const h = HOME[key], g = stickers[key];
         const bob = reduce ? 0 : Math.sin(time * 1.3 + key.length) * 0.06;
         const a = orbitA + (n * Math.PI) / 2;
-        const ox = reduce ? h.p[0] : Math.cos(a) * 2.05, oy = reduce ? h.p[1] : Math.sin(a) * 1.4 + 0.15, oz = reduce ? h.p[2] : 0.95 + Math.sin(a * 2) * 0.3;
+        const ox = reduce ? h.p[0] : Math.cos(a) * (mobile ? 1.8 : 2.05), oy = reduce ? h.p[1] : Math.sin(a) * (mobile ? 0.8 : 1.4) + (mobile ? -0.1 : 0.15), oz = reduce ? h.p[2] : 0.95 + Math.sin(a * 2) * 0.3;
         g.position.set(ox * (1 + blow * 2.2), (oy + bob) * (1 + blow * 1.6), oz + blow * 2);
         g.rotation.set(0, reduce ? 0 : Math.sin(time * 0.8 + key.length) * 0.12, h.r + blow * h.r * 4 + (reduce ? 0 : Math.sin(a) * 0.15));
       });
@@ -596,7 +633,7 @@ export function createStage(canvas, scenes, sections, opts = {}) {
       const inTextZone = (p) => {
         probe.copy(p).project(camera);
         const sx = (probe.x + 1) / 2, sy = (1 - probe.y) / 2;
-        return mobile ? sy < 0.66 : sx < 0.58;
+        return mobile ? sy < textLine : sx < 0.58;
       };
       const rainShow = reduce ? 0 : clamp01(heroW + party + chaos) * (1 - blow);
       rainBody.visible = rainLine.visible = rainScr.visible = rainShow > 0.01;
@@ -619,7 +656,7 @@ export function createStage(canvas, scenes, sections, opts = {}) {
       outFloat.update(reduce ? 0 : time, (1 - blow) * (reduce ? 1 : smooth(1.0, 2.2, introT)), heroW < 0.01 ? null : (p) => {
         probe.copy(p).project(camera);
         const sx = (probe.x + 1) / 2, sy = (1 - probe.y) / 2;
-        const inText = mobile ? sy < 0.66 : sx < 0.58;
+        const inText = mobile ? sy < textLine : sx < 0.58;
         return inText ? 1 - heroW : 1;
       });
       outConf.update(dt);
@@ -634,6 +671,7 @@ export function createStage(canvas, scenes, sections, opts = {}) {
       if (wa && wa === wb) tw = wa === name ? 1 : 0;
       else tw = (wa === name ? 1 - smooth(0.05, 0.5, tg.e) : 0) + (wb === name ? smooth(0.5, 0.95, tg.e) : 0);
       const was = w.p;
+      if ((wa || wb) && name !== wa && name !== wb) { w.p = 0; w.group.visible = false; continue; }
       w.p = reduce ? tw : lerp(w.p, tw, 1 - Math.exp(-dt * 6));
       if (was < 0.02 && w.p >= 0.02) { w.t0 = time; w.onEnter?.(); }
       w.group.visible = w.p > 0.003 && dv > 0.002;
@@ -705,11 +743,12 @@ export function createStage(canvas, scenes, sections, opts = {}) {
     bgU.uChaos.value = reduce ? 0 : chaos;
     const speed = Math.min(1, Math.abs(vel) / 2500);
     postU.uTime.value = time;
-    postU.uAberr.value = reduce ? 0 : 0.0015 + speed * 0.012 + kick * 0.022 + beatPulse * 0.006 + chaos * 0.008;
+    const wild = Math.max(party, chaos);
+    postU.uAberr.value = reduce ? 0 : kick * 0.016 + wild * (0.0015 + speed * 0.012) + beatPulse * 0.006 + chaos * 0.008;
     postU.uBarrel.value = reduce ? 0 : kick * 0.95 + chaos * (0.22 + Math.sin(time * 2.1) * 0.12);
-    postU.uGlitch.value = reduce ? 0 : Math.min(1, glitchT / 0.3) * 0.9 + kick * 0.25;
-    postU.uGrain.value = reduce ? 0 : 0.035;
-    postU.uScan.value = reduce ? 0 : 0.08 + chaos * 0.14;
+    postU.uGlitch.value = reduce ? 0 : Math.min(1, glitchT / 0.3) * 0.9 + kick * 0.25 * wild;
+    postU.uGrain.value = reduce ? 0 : 0.035 * wild;
+    postU.uScan.value = reduce ? 0 : (0.08 + chaos * 0.14) * wild;
     kaleido = lerp(kaleido, kaleidoOn ? 1 : 0, 1 - Math.exp(-dt * 2.5));
     vhs = lerp(vhs, vhsOn, 1 - Math.exp(-dt * 10));
     holeS = lerp(holeS, holeOn, 1 - Math.exp(-dt * (holeOn ? 2.2 : 7)));
@@ -735,17 +774,28 @@ export function createStage(canvas, scenes, sections, opts = {}) {
       renderer.setRenderTarget(null);
       renderer.setClearColor(0x000000, 0);
     }
-    const drawRT = flipRT ? mainRT2 : mainRT;
-    postU.tDiffuse.value = drawRT.texture;
-    renderer.setRenderTarget(drawRT);
-    renderer.clear();
-    renderer.render(bgScene, bgCam);
-    renderer.clearDepth();
-    renderer.render(insideNow ? inner : scene, camera);
-    renderer.setRenderTarget(null);
-    if (drosteOn && perf.level < 3 && !insideNow) flipRT = !flipRT;
-    renderer.clear();
-    renderer.render(postScene, bgCam);
+    const droNow = drosteOn && party > 0.5 && perf.level < 2 && !insideNow;
+    const needPost = !reduce && (kick > 0.01 || party > 0.01 || chaos > 0.01 || glitchT > 0 || kaleido > 0.002 || vhs > 0.002 || holeS > 0.002 || warpT >= 0 || time - lastRipple < 1.5);
+    bgU.uLin.value = needPost ? 1 : 0;
+    if (needPost) {
+      const drawRT = flipRT ? mainRT2 : mainRT;
+      postU.tDiffuse.value = drawRT.texture;
+      renderer.setRenderTarget(drawRT);
+      renderer.clear();
+      renderer.render(bgScene, bgCam);
+      renderer.clearDepth();
+      renderer.render(insideNow ? inner : scene, camera);
+      renderer.setRenderTarget(null);
+      if (droNow) flipRT = !flipRT;
+      renderer.clear();
+      renderer.render(postScene, bgCam);
+    } else {
+      renderer.setRenderTarget(null);
+      renderer.clear();
+      renderer.render(bgScene, bgCam);
+      renderer.clearDepth();
+      renderer.render(insideNow ? inner : scene, camera);
+    }
     raf = requestAnimationFrame(frame);
   }
 
@@ -769,16 +819,18 @@ export function createStage(canvas, scenes, sections, opts = {}) {
     const shown = [];
     for (const root of [scene, inner]) root.traverse((o) => { if (!o.visible) { o.visible = true; shown.push(o); } });
     const prev = renderer.getRenderTarget();
-    renderer.setRenderTarget(mainRT);
-    try {
-      if (renderer.compileAsync && renderer.extensions.has('KHR_parallel_shader_compile')) {
-        renderer.compileAsync(scene, camera).catch(() => {});
-        renderer.compileAsync(inner, camera).catch(() => {});
-      } else {
-        renderer.compile(scene, camera);
-        renderer.compile(inner, camera);
-      }
-    } catch (e) { /* drawing still compiles on demand */ }
+    for (const target of [null, mainRT]) {
+      renderer.setRenderTarget(target);
+      try {
+        if (renderer.compileAsync && renderer.extensions.has('KHR_parallel_shader_compile')) {
+          renderer.compileAsync(scene, camera).catch(() => {});
+          renderer.compileAsync(inner, camera).catch(() => {});
+        } else {
+          renderer.compile(scene, camera);
+          renderer.compile(inner, camera);
+        }
+      } catch (e) { /* drawing still compiles on demand */ }
+    }
     renderer.setRenderTarget(prev);
     for (const o of shown) o.visible = false;
     const seen = new Set();
@@ -797,16 +849,21 @@ export function createStage(canvas, scenes, sections, opts = {}) {
 
   return {
     redrawText() {
+      fitHero();
       for (const l of labels) l.userData.redraw?.();
       drawScreen('hello', texs.hello.image);
       texs.hello.needsUpdate = true;
     },
     setScores(weights, rows) { worlds.scores.setScores(weights, rows); },
-    burstAt(x, y) {
+    // cubes burst out of the clicked spot; with wave, the picture also ripples (party mode)
+    burstAt(x, y, wave = false) {
       ndc.set((x / W) * 2 - 1, -(y / H) * 2 + 1);
       ray.setFromCamera(ndc, camera);
-      postU.uRipples.value[ripIdx].set(x / W, 1 - y / H, time, 1);
-      ripIdx = (ripIdx + 1) % 6;
+      if (wave && !reduce) {
+        postU.uRipples.value[ripIdx].set(x / W, 1 - y / H, time, 1);
+        ripIdx = (ripIdx + 1) % 6;
+        lastRipple = time;
+      }
       if (!lastInside && flipT >= 1 && ray.intersectObject(pc, true).length) flipT = 0;
       camera.getWorldDirection(dirV);
       plane.setFromNormalAndCoplanarPoint(dirV.negate(), lastLook);
