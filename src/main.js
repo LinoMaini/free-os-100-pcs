@@ -339,7 +339,7 @@ import { initOffline } from './offline.js';
   const userTakesOver = (e) => {
     if (!tour.on) return;
     // scrolling inside a desktop opened for a demo, or on the bars, does not stop the tour
-    if (e.target.closest && e.target.closest('.tourbar, .nav, .osv')) return;
+    if (e.target.closest && e.target.closest('.tourbar, .nav, .osv, .fleet')) return;
     stopTour();
   };
   window.addEventListener('wheel', userTakesOver, { passive: true });

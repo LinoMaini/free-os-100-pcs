@@ -147,7 +147,7 @@ export function initCrazy(stage, { reduceMotion }) {
   });
 
   // ---------- a click (never a scroll gesture): open a 3D desktop, or cubes burst out of an empty spot ----------
-  const SKIP = 'a,button,input,label,select,textarea,.card,.marquee,.nav,.foot,.tourbar,.hero-copy,.osv,#modeToast';
+  const SKIP = 'a,button,input,label,select,textarea,.card,.marquee,.nav,.foot,.tourbar,.hero-copy,.osv,#modeToast,.fleet';
   let downType = 'mouse';
   window.addEventListener('pointerdown', (e) => { downType = e.pointerType || 'mouse'; }, { passive: true });
   window.addEventListener('click', (e) => {

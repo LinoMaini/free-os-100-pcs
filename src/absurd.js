@@ -6,7 +6,7 @@ import { sfx } from './kit.js';
 
 const PAL = ['#FF9ECF', '#7CC8FF', '#C8EE5A', '#B7A3FF', '#FF8F8F', '#FFE14D', '#2FBF71', '#3D7BFF', '#FF7A1A'];
 const BODY_SEL = '.hero h1 .l, .hero .lead, .hero .actions .btn, .hero .byline, .card, .logo, .links a, #soundBtn, #motionBtn, #tourBtn, .marquee';
-const EMPTY_SKIP = 'a,button,input,label,select,textarea,.card,.marquee,.nav,.foot,.tourbar,.hero-copy,.osv';
+const EMPTY_SKIP = 'a,button,input,label,select,textarea,.card,.marquee,.nav,.foot,.tourbar,.hero-copy,.osv,.fleet';
 
 export function initAbsurd(stage, { reduceMotion, mode = () => 0 }) {
   if (reduceMotion) return { get busy() { return false; } };
