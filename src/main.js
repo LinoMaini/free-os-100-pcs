@@ -188,11 +188,12 @@ import { initCrazy } from './crazy.js';
   // walks across in three minutes, the line behind it turns red in the last 30 seconds and the stick shakes in the last 10.
   // ?slot=60 shortens every part (seconds), for a quick rehearsal
   const SLOT = Math.max(10, Number(new URLSearchParams(location.search).get('slot')) || 180) * 1000;
+  // one system per speaker, and the last speaker brings it all together
   const PARTS = [
-    [['world', 30], ['top', 22], ['teardown', 18], ['challenge', 48], ['method', 62]], // Lino
-    [['mint', 55], ['zorin', 50], ['endless', 75]], // Davide
-    [['scores', 70], ['energy', 55], ['access', 55]], // Dennis
-    [['pick', 50], ['install', 60], ['plan', 40], ['end', 30]], // Roberto
+    [['world', 30], ['top', 16], ['teardown', 12], ['challenge', 26], ['method', 33], ['mint', 63]], // Lino: the mission, then Linux Mint
+    [['zorin', 180]], // Davide: Zorin OS Lite, with a live look at its desktop
+    [['endless', 180]], // Dennis: Endless OS, with a live look at its desktop
+    [['scores', 40], ['energy', 14], ['access', 16], ['pick', 34], ['install', 46], ['plan', 14], ['end', 16]], // Roberto: the comparison, our pick and the plan
   ];
   const tourStops = [];
   PARTS.forEach((list, part) => list.forEach(([id, share]) => { const el = document.getElementById(id); if (el) tourStops.push({ el, part, share }); }));
@@ -260,7 +261,13 @@ import { initCrazy } from './crazy.js';
     cancelAnimationFrame(tour.raf);
     const stop = tourStops[i];
     // moving on to a later part hands over to the next speaker: their three minutes start now
-    if (stop.part > tour.part) { tour.part = stop.part; tour.partStart = performance.now(); prog?.classList.remove('t-warn', 't-end'); }
+    // (a desktop opened for a live demo closes first)
+    if (stop.part > tour.part) {
+      tour.part = stop.part;
+      tour.partStart = performance.now();
+      prog?.classList.remove('t-warn', 't-end');
+      window.dispatchEvent(new CustomEvent('tour:handover'));
+    }
     tour.i = i;
     tbStep.textContent = `${i + 1} / ${tourStops.length}`;
     tbName.textContent = stop.el.dataset.stop;
@@ -327,14 +334,15 @@ import { initCrazy } from './crazy.js';
   document.getElementById('tbStop').addEventListener('click', stopTour);
   const userTakesOver = (e) => {
     if (!tour.on) return;
-    if (e.target.closest && e.target.closest('.tourbar, .nav')) return;
+    // scrolling inside a desktop opened for a demo, or on the bars, does not stop the tour
+    if (e.target.closest && e.target.closest('.tourbar, .nav, .osv')) return;
     stopTour();
   };
   window.addEventListener('wheel', userTakesOver, { passive: true });
   window.addEventListener('touchstart', userTakesOver, { passive: true });
   // During the tour a presentation clicker (or the arrow keys) moves between stops.
   window.addEventListener('keydown', (e) => {
-    if (!tour.on) return;
+    if (!tour.on || html.classList.contains('osv-lock')) return; // the keys belong to an open desktop
     if (e.key === 'ArrowRight' || e.key === 'PageDown') {
       e.preventDefault();
       if (!tour.scrolling && tour.i + 1 < tourStops.length) go(tour.i + 1);

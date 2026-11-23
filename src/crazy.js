@@ -16,6 +16,8 @@ export function initCrazy(stage, { reduceMotion }) {
   const fine = window.matchMedia('(pointer: fine)').matches;
   let mode = 0; // 0 normal, 1 party, 2 chaos, 3 kaleidoscope
   const viewer = initViewer(stage, { reduceMotion });
+  // the tour hands over to the next speaker: a desktop left open for a demo closes
+  window.addEventListener('tour:handover', () => { if (viewer.isOpen) viewer.close(); });
   initAbsurd(stage, { reduceMotion, mode: () => mode });
 
   // ---------- sound: off until the visitor turns it on ----------
