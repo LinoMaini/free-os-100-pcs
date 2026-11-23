@@ -219,6 +219,7 @@ export function initCrazy(stage, { reduceMotion }) {
     let queued = false;
     const paint = () => {
       queued = false;
+      if (prog.dataset.mode === 'timer') return; // during the tour the stick is the speakers' clock (main.js)
       const max = document.documentElement.scrollHeight - innerHeight;
       const p = max > 0 ? Math.min(1, Math.max(0, scrollY / max)) : 0;
       fill.style.transform = `scaleX(${p.toFixed(4)})`;

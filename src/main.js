@@ -181,7 +181,21 @@ import { initCrazy } from './crazy.js';
   });
   renderTotals();
 
-  // ---------- autoplay tour ----------
+  // ---------- the tour: four speakers, three minutes each ----------
+  // Each speaker's part lasts exactly SLOT. Inside a part the tour moves on by itself, giving every stop its share of the
+  // time that is left, so a click forward or back just shares the rest out again. When the three minutes are up the tour
+  // goes to the next speaker's first stop. The only clock is hidden in plain sight: the little USB stick in the top bar
+  // walks across in three minutes, the line behind it turns red in the last 30 seconds and the stick shakes in the last 10.
+  // ?slot=60 shortens every part (seconds), for a quick rehearsal
+  const SLOT = Math.max(10, Number(new URLSearchParams(location.search).get('slot')) || 180) * 1000;
+  const PARTS = [
+    [['world', 30], ['top', 22], ['teardown', 18], ['challenge', 48], ['method', 62]], // Lino
+    [['mint', 55], ['zorin', 50], ['endless', 75]], // Davide
+    [['scores', 70], ['energy', 55], ['access', 55]], // Dennis
+    [['pick', 50], ['install', 60], ['plan', 40], ['end', 30]], // Roberto
+  ];
+  const tourStops = [];
+  PARTS.forEach((list, part) => list.forEach(([id, share]) => { const el = document.getElementById(id); if (el) tourStops.push({ el, part, share }); }));
   const stops = [...document.querySelectorAll('[data-stop]')];
   const bar = document.getElementById('tourbar');
   const tbStep = document.getElementById('tbStep');
@@ -189,8 +203,7 @@ import { initCrazy } from './crazy.js';
   const tbFill = document.getElementById('tbFill');
   const tbPause = document.getElementById('tbPause');
   const navH = () => document.querySelector('.nav').offsetHeight;
-  const tour = { on: false, paused: false, i: 0, left: 0, raf: 0, scrolling: false };
-  const DWELL = 6500;
+  const tour = { on: false, paused: false, i: 0, left: 0, raf: 0, scrolling: false, part: 0, partStart: 0, clock: 0 };
 
   const html = document.documentElement;
   // offsetTop, not the on-screen box: an element moving in a party mode would shift the box
@@ -216,27 +229,65 @@ import { initCrazy } from './crazy.js';
     requestAnimationFrame(step);
   }
 
+  // the hidden clock in the top bar
+  const prog = document.getElementById('progress');
+  const pgFill = prog?.querySelector('.pg-fill'), pgStick = prog?.querySelector('.pg-stick');
+  function paintClock() {
+    if (!tour.on || !prog) return;
+    const left = SLOT - (performance.now() - tour.partStart), f = Math.min(1, Math.max(0, 1 - left / SLOT));
+    pgFill.style.transform = `scaleX(${f.toFixed(4)})`;
+    pgStick.style.transform = `translateX(${(f * (prog.clientWidth - 42)).toFixed(1)}px)`;
+    prog.classList.toggle('t-warn', left < 30000);
+    prog.classList.toggle('t-end', left < 10000);
+    // the time is up and the tour is not paused: the next speaker starts
+    if (left <= 0 && !tour.paused) {
+      const next = tourStops.findIndex((s) => s.part > tour.part);
+      if (next < 0) {
+        // the last speaker's time is up: finish on the last stop (questions) and hand the page back
+        const lastEl = tourStops[tourStops.length - 1].el;
+        stopTour();
+        scrollToEl(lastEl, () => {}, () => true);
+        return;
+      }
+      go(next);
+    }
+    tour.clock = requestAnimationFrame(paintClock);
+  }
+
   function go(i) {
     if (!tour.on) return;
-    if (i >= stops.length) { stopTour(); return; }
+    if (i >= tourStops.length) { stopTour(); return; }
+    cancelAnimationFrame(tour.raf);
+    const stop = tourStops[i];
+    // moving on to a later part hands over to the next speaker: their three minutes start now
+    if (stop.part > tour.part) { tour.part = stop.part; tour.partStart = performance.now(); prog?.classList.remove('t-warn', 't-end'); }
     tour.i = i;
-    tbStep.textContent = `${i + 1} / ${stops.length}`;
-    tbName.textContent = stops[i].dataset.stop;
+    tbStep.textContent = `${i + 1} / ${tourStops.length}`;
+    tbName.textContent = stop.el.dataset.stop;
     tbFill.style.width = '0%';
-    scrollToEl(stops[i], () => {
-      const extra = reduceMotion ? 0 : Math.max(0, stops[i].offsetHeight - window.innerHeight * 1.2);
-      const dwell = DWELL + (extra / window.innerHeight) * 3200, y0 = window.scrollY;
+    scrollToEl(stop.el, () => {
+      // this stop's share of the time the speaker has left
+      const rest = tourStops.slice(i).filter((s) => s.part === stop.part).reduce((a, s) => a + s.share, 0);
+      const left = Math.max(4000, SLOT - (performance.now() - tour.partStart));
+      const dwell = (left * stop.share) / rest;
+      const extra = reduceMotion ? 0 : Math.max(0, stop.el.offsetHeight - window.innerHeight * 1.2);
+      const y0 = window.scrollY;
       tour.left = dwell;
       let last = performance.now();
       const tick = (now) => {
         if (!tour.on) return;
         if (!tour.paused) tour.left -= now - last;
         last = now;
-        const prog = Math.min(1, 1 - tour.left / dwell);
-        if (extra > 0) { html.style.scrollBehavior = 'auto'; window.scrollTo(0, y0 + extra * (prog < 0.5 ? 2 * prog * prog : 1 - (-2 * prog + 2) ** 2 / 2)); }
-        tbFill.style.width = `${prog * 100}%`;
-        if (tour.left <= 0) { if (extra > 0) html.style.scrollBehavior = ''; go(i + 1); }
-        else tour.raf = requestAnimationFrame(tick);
+        const p = Math.min(1, 1 - tour.left / dwell);
+        // a tall section (the opening world, the opened computer, the tutorial) plays while its stop lasts
+        if (extra > 0) { html.style.scrollBehavior = 'auto'; window.scrollTo(0, y0 + extra * (p < 0.5 ? 2 * p * p : 1 - (-2 * p + 2) ** 2 / 2)); }
+        tbFill.style.width = `${p * 100}%`;
+        if (tour.left <= 0) {
+          if (extra > 0) html.style.scrollBehavior = '';
+          // the last stop of a part waits for the speaker's time to run out instead of jumping ahead
+          const nextStop = tourStops[i + 1];
+          if (nextStop && nextStop.part === stop.part) go(i + 1);
+        } else tour.raf = requestAnimationFrame(tick);
       };
       tour.raf = requestAnimationFrame(tick);
     });
@@ -247,18 +298,25 @@ import { initCrazy } from './crazy.js';
   function startTour() {
     tour.on = true;
     tour.paused = false;
+    tour.part = 0;
+    tour.partStart = performance.now();
     bar.hidden = false;
     tbPause.textContent = 'Pause';
     navTour.textContent = 'Stop the tour';
     navTour.setAttribute('aria-pressed', 'true');
+    if (prog) { prog.dataset.mode = 'timer'; prog.classList.remove('t-warn', 't-end'); }
+    cancelAnimationFrame(tour.clock);
+    tour.clock = requestAnimationFrame(paintClock);
     go(0);
   }
   function stopTour() {
     tour.on = false;
     cancelAnimationFrame(tour.raf);
+    cancelAnimationFrame(tour.clock);
     bar.hidden = true;
     navTour.textContent = 'Play the tour';
     navTour.setAttribute('aria-pressed', 'false');
+    if (prog) { delete prog.dataset.mode; prog.classList.remove('t-warn', 't-end'); window.dispatchEvent(new Event('scroll')); }
   }
   tourButtons.forEach((b) => b.addEventListener('click', startTour));
   navTour.addEventListener('click', () => (tour.on ? stopTour() : startTour()));
@@ -279,11 +337,9 @@ import { initCrazy } from './crazy.js';
     if (!tour.on) return;
     if (e.key === 'ArrowRight' || e.key === 'PageDown') {
       e.preventDefault();
-      cancelAnimationFrame(tour.raf);
-      if (!tour.scrolling) go(tour.i + 1);
+      if (!tour.scrolling && tour.i + 1 < tourStops.length) go(tour.i + 1);
     } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
       e.preventDefault();
-      cancelAnimationFrame(tour.raf);
       if (!tour.scrolling) go(Math.max(0, tour.i - 1));
     } else if (e.key === 'Escape' || ['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(e.key)) {
       stopTour();

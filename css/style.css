@@ -587,3 +587,7 @@ body.party .hero h1 .l{animation:wiggle .42s ease-in-out infinite alternate;anim
 html[data-td="1"] .td-cap [data-l="1"],html[data-td="2"] .td-cap [data-l="2"],html[data-td="3"] .td-cap [data-l="3"],html[data-td="4"] .td-cap [data-l="4"]{opacity:1;transform:rotate(-3deg)}
 @media (prefers-reduced-motion:reduce){:root:not(.motion-on) #modeToast{transition:none}:root:not(.motion-on) #modeToast.show{transform:none}:root:not(.motion-on) body.party .hero h1 .l,:root:not(.motion-on) body.party #progress .pg-stick{animation:none}:root:not(.motion-on) .td-cap span{transition:none}}
 @media (max-width:400px){.nav{gap:6px}.logo{font-size:14px;padding:6px 8px}.nav .btn-ink{font-size:14px;padding:8px 10px}}
+#progress.t-warn .pg-fill{background:#E5484D}
+#progress.t-end .pg-stick{animation:stickShake .45s ease-in-out infinite}
+@keyframes stickShake{0%,100%{rotate:0deg}25%{rotate:-14deg}75%{rotate:14deg}}
+@media (prefers-reduced-motion:reduce){:root:not(.motion-on) #progress.t-end .pg-stick{animation:none;opacity:.5}}
