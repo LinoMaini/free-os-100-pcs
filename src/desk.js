@@ -948,13 +948,13 @@ export function buildDesk(os, { reduceMotion, getScale }) {
       const it = items()[i];
       if (!it) { view.innerHTML = '<p class="ds-empty">No pictures yet.</p>'; return; }
       cur = i;
-      view.innerHTML = `<img src="${it.src}" alt="${esc(it.name)}">`;
+      view.replaceChildren(el('img', '', null, { src: it.src, alt: it.name }));
       strip.querySelectorAll('.ph-th').forEach((b) => b.classList.toggle('on', +b.dataset.i === i));
       w.setTitle(`${it.name} – Photos`);
     };
     const render = () => {
       strip.replaceChildren();
-      items().forEach((it, i) => { const b = btn(strip, 'ph-th', it.name, `<img src="${it.src}" alt="">`); b.dataset.i = i; b.addEventListener('click', () => show(i)); });
+      items().forEach((it, i) => { const b = btn(strip, 'ph-th', it.name); b.appendChild(el('img', '', null, { src: it.src, alt: '' })); b.dataset.i = i; b.addEventListener('click', () => show(i)); });
       show(Math.min(cur, items().length - 1));
     };
     const open = (n) => { const i = items().findIndex((x) => x.name === n); if (i >= 0) show(i); };
