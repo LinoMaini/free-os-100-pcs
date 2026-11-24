@@ -38,10 +38,14 @@ export function readMsg(bytes) {
 let last = 0;
 export const seq = () => (last = Math.max(last + 1, Date.now() * 1000));
 
-// brokers can be swapped with ?mq=ws://localhost:9001/mqtt (comma-separated), for testing
+// brokers can be swapped with ?mq=ws://localhost:9001/mqtt (comma-separated), for testing.
+// Only honoured on localhost: otherwise a shared link like ?mq=wss://evil/mqtt would end up in the
+// QR code and silently route every phone's traffic through an attacker's broker.
 export function brokers(params = new URLSearchParams(location.search)) {
   const mq = params.get('mq');
   if (!mq) return DEFAULT_BROKERS;
+  const local = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+  if (!local) return DEFAULT_BROKERS;
   const list = mq.split(',').map((s) => s.trim()).filter((s) => /^wss?:\/\//.test(s));
   return list.length ? list : DEFAULT_BROKERS;
 }
