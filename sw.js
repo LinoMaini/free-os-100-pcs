@@ -1,7 +1,7 @@
 // Keeps a copy of the whole site on the device, so it opens and works without internet.
 // build.mjs fills in the file list and the version; a new version replaces the old copy.
-const CACHE = 'wrg-69fcb607f4';
-const ASSETS = ["./","css/style.css?v=3a399c9ca9","js/app.js?v=a74b73a8f7","fonts/archivo-black-latin-400-normal.woff2","fonts/archivo-latin-400-normal.woff2","fonts/archivo-latin-500-normal.woff2","fonts/archivo-latin-700-normal.woff2","manifest.webmanifest","icons/apple-touch-icon.png","icons/icon-192.png","icons/icon-512.png","icons/maskable-512.png","join/","js/join.js?v=ebff329285"];
+const CACHE = 'wrg-940b55b14c';
+const ASSETS = ["./","css/style.css?v=f15fbab6b4","js/app.js?v=cb04aa8e23","fonts/archivo-black-latin-400-normal.woff2","fonts/archivo-latin-400-normal.woff2","fonts/archivo-latin-500-normal.woff2","fonts/archivo-latin-700-normal.woff2","manifest.webmanifest","icons/apple-touch-icon.png","icons/icon-192.png","icons/icon-512.png","icons/maskable-512.png","join/","js/join.js?v=0470fcecb1"];
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(ASSETS.map((u) => new Request(u, { cache: 'reload' })))).then(() => self.skipWaiting()));
@@ -19,8 +19,11 @@ const pageKey = (url) => { const u = new URL(url); u.search = ''; u.hash = ''; u
 async function page(req) {
   const cache = await caches.open(CACHE);
   try {
-    const res = await Promise.race([fetch(req), new Promise((_, no) => setTimeout(() => no(new Error('slow')), 4000))]);
-    if (res.ok) cache.put(pageKey(req.url), res.clone());
+    let timer;
+    const res = await Promise.race([fetch(req), new Promise((_, no) => { timer = setTimeout(() => no(new Error('slow')), 4000); })]);
+    clearTimeout(timer); // fetch won the race: drop the timer so its promise never rejects unhandled
+    if (!res.ok) throw new Error('http ' + res.status); // a 4xx/5xx (e.g. a brief CDN outage) means serve the cached copy, not the error
+    cache.put(pageKey(req.url), res.clone());
     return res;
   } catch (e) {
     return (await cache.match(pageKey(req.url))) || (await cache.match(new URL('./', self.registration.scope).href)) || Response.error();
