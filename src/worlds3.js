@@ -24,6 +24,7 @@ const angLerp = (a, b, t) => { let d = (b - a) % (Math.PI * 2); if (d > Math.PI)
 const ease = (t) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2);
 const dummy = new THREE.Object3D();
 const UP = new THREE.Vector3(0, 1, 0);
+const _perp = new THREE.Vector3(), _centre = new THREE.Vector3(); // reused each frame so the launch loop allocates nothing
 
 function landTexture() {
   const W = 2048, H = 1024;
@@ -384,7 +385,7 @@ export function addGlobeWorld(W) {
       smoke.forEach((sm) => {
         const u = (sm.k + t * 0.9) % 1;
         const a = R + 0.1 + climb * (BURST_ALT - R - 0.13) * (1 - u);
-        sm.m.position.copy(fromN).multiplyScalar(a).addScaledVector(fromN.clone().cross(UP).normalize(), Math.sin(u * 9 + sm.k * 20) * 0.04 * u);
+        sm.m.position.copy(fromN).multiplyScalar(a).addScaledVector(_perp.copy(fromN).cross(UP).normalize(), Math.sin(u * 9 + sm.k * 20) * 0.04 * u);
         sm.m.scale.setScalar((0.5 + u * 2.2) * (1 - u));
         sm.m.visible = !reduce && launch > 0.02 && launch < 1 && q < 0.3;
       });
@@ -393,7 +394,7 @@ export function addGlobeWorld(W) {
       confetti.visible = boom > 0 && q < 0.45;
       if (confetti.visible) {
         const cu = clamp01((q - 0.145) / 0.25);
-        const centre = fromN.clone().multiplyScalar(BURST_ALT);
+        const centre = _centre.copy(fromN).multiplyScalar(BURST_ALT);
         confSeed.forEach((c, i) => {
           dummy.position.copy(centre).addScaledVector(c.d, cu * 0.8 * c.s);
           dummy.position.addScaledVector(fromN, -cu * cu * 0.5);

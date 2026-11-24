@@ -414,12 +414,15 @@ export function buildWorlds() {
     const whiteC = new THREE.Color(PAL.white);
     const start = [...Array(N).keys()].map((i) => ({ x: ((i % 10) - 4.5) * 0.27, z: (Math.floor(i / 10) - 4.5) * 0.27, y: 2.4 + (((i * 53) % 17) / 17) * 0.8 }));
     for (let i = 0; i < N; i++) cubes.setColorAt(i, whiteC);
+    cubes.instanceColor.needsUpdate = true; // upload the base white once at build
+    const survColored = survivors.map(() => false); // whether each survivor currently shows its OS colour
     const LOOP = 6.5;
     const radiusAt = (y) => (y >= gatesY[0] ? gatesR[0] : y <= gatesY[3] ? gatesR[3] : lerp(gatesR[3], gatesR[0], (y - gatesY[3]) / (gatesY[0] - gatesY[3])));
     W.funnel = {
       group,
       update(lt, dt, reduce) {
         const t = reduce ? 4.2 : lt % LOOP;
+        let colorDirty = false;
         for (let i = 0; i < N; i++) {
           const s0 = start[i], f = fate[i];
           const y = s0.y - Math.max(0, t - 0.3) * 1.45;
@@ -437,7 +440,8 @@ export function buildWorlds() {
             px = lerp(px, (slot - 1) * 0.55, arrive);
             pz = lerp(pz, 0.2, arrive);
             sc = 1 + arrive * 0.6;
-            cubes.setColorAt(i, y < gatesY[3] ? survivorColor[slot] : whiteC);
+            const colored = y < gatesY[3];
+            if (survColored[slot] !== colored) { survColored[slot] = colored; cubes.setColorAt(i, colored ? survivorColor[slot] : whiteC); colorDirty = true; }
           }
           if (t > LOOP - 0.5) sc *= (LOOP - t) / 0.5;
           dummy.position.set(px, py, pz);
@@ -448,7 +452,7 @@ export function buildWorlds() {
           lines.setMatrixAt(i, dummy.matrix);
         }
         cubes.instanceMatrix.needsUpdate = lines.instanceMatrix.needsUpdate = true;
-        cubes.instanceColor.needsUpdate = true;
+        if (colorDirty) cubes.instanceColor.needsUpdate = true;
       },
     };
   }
