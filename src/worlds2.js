@@ -8,6 +8,7 @@ import * as THREE from 'three';
 import { smooth, clamp01, easeOutBack, PAL, toon, toonNew, part, rbox, outlineMat, makeLabel, sfx } from './kit.js';
 
 const dummy = new THREE.Object3D();
+const _coolerOff = new THREE.Vector3(); // reused each frame so the teardown loop allocates nothing
 const MONO = 'ui-monospace, "Cascadia Mono", Consolas, Menlo, "DejaVu Sans Mono", monospace';
 const ease = (t) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2);
 const canvas = (w, h, draw) => { const c = document.createElement('canvas'); c.width = w; c.height = h; draw(c.getContext('2d'), w, h); return c; };
@@ -360,7 +361,7 @@ export function addAbsurdWorlds(W) {
           if (p.pop >= 0 && p !== coolerP) s = easeOutBack(smooth(0.08 + p.pop * 0.014, 0.14 + p.pop * 0.014, q));
           const ex = p === boardP ? 0 : e1;
           p.o.position.copy(p.home).addScaledVector(p.dir, ex * 3.2);
-          if (p === coolerP) p.o.position.add(new THREE.Vector3(0.4 * lift, 1.6 * lift, 2.4 * lift));
+          if (p === coolerP) p.o.position.add(_coolerOff.set(0.4 * lift, 1.6 * lift, 2.4 * lift));
           p.o.rotation.set(p.spin.x * ex + (p === coolerP ? lift * 1.4 : 0), p.spin.y * ex, p.spin.z * ex);
           if (p === boardP) { p.o.position.z = p.home.z - eb * 2; s = 1 - eb * 0.3; }
           setS(p.o, s);

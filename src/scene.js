@@ -468,6 +468,7 @@ export function createStage(canvas, scenes, sections, opts = {}) {
   }
 
   const tgBg = new THREE.Color(), bgC = new THREE.Color(scenes[sections[0]?.dataset.scene]?.bg || PAL.yellow), innerC = new THREE.Color();
+  const _tg = {}; // reused every frame; target() is consumed synchronously so one object is safe
   function target() {
     const y = window.scrollY + H * 0.5;
     let i = 0;
@@ -481,19 +482,18 @@ export function createStage(canvas, scenes, sections, opts = {}) {
     tgBg.copy(a._bg).lerp(b._bg, e);
     if (a.inside && b.inside) innerC.copy(a._bg).lerp(b._bg, e);
     else innerC.copy(a.inside ? a._bg : b.inside ? b._bg : tgBg);
-    return {
-      a, b, e,
-      ax: lerp(pick(a, 'ax'), pick(b, 'ax'), e),
-      ay: lerp(pick(a, 'ay'), pick(b, 'ay'), e),
-      az: lerp(a.az, b.az, e),
-      el: lerp(a.el, b.el, e),
-      zoom: lerp(pick(a, 'zoom'), pick(b, 'zoom'), e),
-      dive: lerp(a.inside ? 1 : 0, b.inside ? 1 : 0, e),
-      crowd: lerp(a.crowd || 0, b.crowd || 0, e),
-      lit: lerp(a.lit || 0, b.lit || 0, e),
-      mix: smooth(0.35, 0.65, t),
-      idx: i,
-    };
+    _tg.a = a; _tg.b = b; _tg.e = e;
+    _tg.ax = lerp(pick(a, 'ax'), pick(b, 'ax'), e);
+    _tg.ay = lerp(pick(a, 'ay'), pick(b, 'ay'), e);
+    _tg.az = lerp(a.az, b.az, e);
+    _tg.el = lerp(a.el, b.el, e);
+    _tg.zoom = lerp(pick(a, 'zoom'), pick(b, 'zoom'), e);
+    _tg.dive = lerp(a.inside ? 1 : 0, b.inside ? 1 : 0, e);
+    _tg.crowd = lerp(a.crowd || 0, b.crowd || 0, e);
+    _tg.lit = lerp(a.lit || 0, b.lit || 0, e);
+    _tg.mix = smooth(0.35, 0.65, t);
+    _tg.idx = i;
+    return _tg;
   }
 
   const place = (cam, look, az, el, dist) => {
