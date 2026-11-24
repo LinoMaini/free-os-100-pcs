@@ -111,7 +111,7 @@ main{position:relative;z-index:1}
 .tot strong{font:30px/1 var(--display)}
 .meter{height:12px;border:2px solid var(--ink);background:var(--paper)}
 .meter i{display:block;height:100%;background:var(--ink)}
-.lead{grid-column:1 / -1}
+.tot .lead{grid-column:1 / -1}
 .tot .lead{font:13px/1 var(--display);font-style:normal;background:var(--bg);border:2px solid var(--ink);padding:4px 6px;justify-self:start;rotate:-2deg}
 .mob{display:none}
 .vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
