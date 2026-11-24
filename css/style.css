@@ -288,7 +288,7 @@ html.q-low #trail{display:none}
 html.flying .links{overflow:visible}
 body.absurd .tag{animation:absurdHue 1.2s linear infinite}
 @keyframes absurdHue{to{filter:hue-rotate(360deg)}}
-.scene.teardown{min-height:340svh;display:block;padding:0}
+.scene.teardown{min-height:240svh;display:block;padding:0}
 .chip.c-zos{background:#0F62FE;color:#fff}
 /* the opening world (this copy): four captions over the globe, the bar turns white on the night sky */
 .scene.world{display:block;padding:0}

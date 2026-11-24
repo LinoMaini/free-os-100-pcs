@@ -338,7 +338,7 @@ export function addAbsurdWorlds(W) {
       group,
       onEnter() { lastLevel.n = 0; },
       update(t, dt, reduce, sp = 0) {
-        const q = reduce ? 0.3 : clamp01((sp - 0.2) / 0.6);
+        const q = reduce ? 0.3 : clamp01((sp - 0.1) / 0.85); // dive runs across sp 0.1 -> 0.95, so almost the whole section scrubs (no frozen tail)
         const zu = ease(smooth(0.27, 0.97, q));
         const Z = Math.exp(zu * Math.log(ZEND));
         const lvl = Z < 4 ? 1 : Z < 60 ? 2 : Z < A4 ? 3 : Z < A5 ? 4 : 5;
