@@ -191,12 +191,12 @@ import { initOffline } from './offline.js';
   // walks across in three minutes, the line behind it turns red in the last 30 seconds and the stick shakes in the last 10.
   // ?slot=60 shortens every part (seconds), for a quick rehearsal
   const SLOT = Math.max(10, Number(new URLSearchParams(location.search).get('slot')) || 180) * 1000;
-  // one system per speaker, and the last speaker brings it all together
+  // each speaker takes a run of stops in page order, so the tour scrolls straight down the page
   const PARTS = [
-    [['world', 30], ['top', 16], ['teardown', 12], ['challenge', 26], ['method', 33], ['mint', 63]], // Lino: the mission, then Linux Mint
-    [['zorin', 180]], // Davide: Zorin OS Lite, with a live look at its desktop
-    [['endless', 180]], // Dennis: Endless OS, with a live look at its desktop
-    [['scores', 40], ['energy', 14], ['access', 16], ['pick', 34], ['install', 46], ['plan', 14], ['end', 16]], // Roberto: the comparison, our pick and the plan
+    [['world', 34], ['top', 22]], // Lino Maini: the mission, up to "Their first computer"
+    [['teardown', 30], ['challenge', 26], ['method', 30], ['energy', 16], ['access', 18]], // Dennis Boschi: inside the computer, how we narrowed it down, energy and accessibility
+    [['mint', 40], ['zorin', 30], ['endless', 34], ['scores', 36], ['pick', 30]], // Roberto Cacace: the three systems (live desktops on Zorin and Endless), the scores and our pick
+    [['install', 60], ['plan', 24], ['bonus', 26], ['end', 20]], // Davide Miron: how to install it, the plan and the close
   ];
   const tourStops = [];
   PARTS.forEach((list, part) => list.forEach(([id, share]) => { const el = document.getElementById(id); if (el) tourStops.push({ el, part, share }); }));
