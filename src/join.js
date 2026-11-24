@@ -62,7 +62,7 @@ function start(code, params) {
     if (!host) return;
     const idx = host.ro.indexOf(id);
     num.textContent = idx >= 0 ? String(idx + 1) : '…';
-    const stop = host.end ? 'end' : (STOPS[host.st] ? host.st : 'top');
+    const stop = host.end ? 'end' : (Object.hasOwn(STOPS, host.st) ? host.st : 'top');
     const s = SCREEN[stop] || 'boot';
     cap.textContent = STOPS[stop];
     if (s !== shown) {
