@@ -12,7 +12,7 @@
 :root{color-scheme:light;--bg:#FFE14D;--ink:#000;--paper:#fff;--mint:#2FBF71;--zorin:#3D7BFF;--endless:#FF7A1A;--soft:#333;--display:"Archivo Black","Arial Black",Impact,sans-serif}
 *{box-sizing:border-box;min-width:0}
 html{scroll-padding-top:76px;scrollbar-gutter:stable;scrollbar-width:thin;scrollbar-color:rgba(0,0,0,.6) transparent}
-body{margin:0;background:var(--bg);color:var(--ink);font:500 17px/1.55 Archivo,system-ui,sans-serif;overflow-x:clip}
+body{margin:0;background:var(--bg);color:var(--ink);font:500 17px/1.55 Archivo,system-ui,sans-serif;overflow-x:hidden;overflow-x:clip}
 h1,h2,h3{font-family:var(--display);font-weight:400;margin:0;text-wrap:balance}
 p{margin:0}
 a{color:inherit}
@@ -208,7 +208,7 @@ body.party .card{animation:wiggle .42s ease-in-out infinite alternate}
 .hero h1 .w{white-space:nowrap}
 .hero h1 .l{display:inline-block}
 .hero h1 .l.lit{-webkit-text-stroke:3px #000;paint-order:stroke fill}
-main{overflow-x:clip}
+main{overflow-x:hidden;overflow-x:clip}
 .marquee{transform:rotate(-1.6deg) scale(1.04)}
 .marquee.rev{transform:rotate(1.4deg);margin-top:-12px;background:var(--ink);color:var(--bg)}
 .marquee.rev .track{animation-direction:reverse}
