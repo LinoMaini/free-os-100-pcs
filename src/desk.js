@@ -773,7 +773,7 @@ export function buildDesk(os, { reduceMotion, getScale }) {
     const g = cv.getContext('2d'), N = 20, C = 20;
     let snake, dir, next, food, score, best = 0, dead, paused = false, acc = 0, last = 0, raf = 0, started = false;
     const reset = () => { snake = [[8, 10], [7, 10], [6, 10]]; dir = [1, 0]; next = [1, 0]; score = 0; dead = false; place(); upd(); };
-    const place = () => { do { food = [Math.floor(Math.random() * N), Math.floor(Math.random() * N)]; } while (snake.some(([x, y]) => x === food[0] && y === food[1])); };
+    const place = () => { if (snake.length >= N * N) { food = null; return; } do { food = [Math.floor(Math.random() * N), Math.floor(Math.random() * N)]; } while (snake.some(([x, y]) => x === food[0] && y === food[1])); };
     const upd = () => { const b = head.querySelectorAll('b'); b[0].textContent = score; b[1].textContent = best; };
     const turn = (d) => { if (dead) { reset(); started = true; return; } started = true; if (d[0] !== -dir[0] || d[1] !== -dir[1]) next = d; };
     [['↑', [0, -1], 'Up'], ['←', [-1, 0], 'Left'], ['↓', [0, 1], 'Down'], ['→', [1, 0], 'Right']].forEach(([s, d, l]) => btn(pad, 'sn-k', l, s).addEventListener('click', () => turn(d)));
@@ -785,9 +785,12 @@ export function buildDesk(os, { reduceMotion, getScale }) {
     const step = () => {
       dir = next;
       const h = [snake[0][0] + dir[0], snake[0][1] + dir[1]];
-      if (h[0] < 0 || h[1] < 0 || h[0] >= N || h[1] >= N || snake.some(([x, y]) => x === h[0] && y === h[1])) { dead = true; best = Math.max(best, score); upd(); pop(200); return; }
+      const willGrow = food && h[0] === food[0] && h[1] === food[1];
+      const last = snake.length - 1; // the tail cell is vacated this step unless we grow, so moving into it is legal
+      const hitSelf = snake.some(([x, y], idx) => x === h[0] && y === h[1] && (willGrow || idx !== last));
+      if (h[0] < 0 || h[1] < 0 || h[0] >= N || h[1] >= N || hitSelf) { dead = true; best = Math.max(best, score); upd(); pop(200); return; }
       snake.unshift(h);
-      if (h[0] === food[0] && h[1] === food[1]) { score++; upd(); place(); pop(880); } else snake.pop();
+      if (willGrow) { score++; upd(); place(); pop(880); } else snake.pop();
     };
     const draw = () => {
       g.fillStyle = '#C8EE5A';
