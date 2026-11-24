@@ -13,7 +13,6 @@ import { initOffline } from './offline.js';
   if (motionParam === 'on' || motionParam === 'off') store('motion', motionParam === 'on' ? 'on' : null);
   const forceMotion = prefersReduce && store('motion') === 'on';
   const reduceMotion = prefersReduce && !forceMotion;
-  document.documentElement.classList.add('js');
   document.documentElement.classList.toggle('motion-on', forceMotion);
   if (prefersReduce) {
     const btn = document.createElement('button');
