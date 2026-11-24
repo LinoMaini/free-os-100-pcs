@@ -617,6 +617,7 @@ export function buildDesk(os, { reduceMotion, getScale }) {
     const offline = (host) => {
       game?.stop();
       game = null;
+      delete w.win.dataset.keys; // the game set it; clear it so key events aren't swallowed after it stops
       page.innerHTML = `<div class="wb-off"><svg viewBox="0 0 120 90" aria-hidden="true"><path d="M30 70a20 20 0 0 1 2-40 26 26 0 0 1 50-4 18 18 0 0 1 8 44z" fill="#fff" stroke="#000" stroke-width="5" stroke-linejoin="round"/><path d="M20 15l80 65" stroke="#FF4D4D" stroke-width="7" stroke-linecap="round"/></svg>
         <h3>${host ? `Can’t reach ${esc(host)}` : 'You’re offline'}</h3><p>There’s no internet here right now. That’s normal where these PCs are going, and the computer keeps working.</p>
         <div class="wb-acts"><button type="button" class="ap-btn ap-btn-main" data-a="wiki">Open the Encyclopedia</button><button type="button" class="ap-btn" data-a="game">Play while you wait</button></div></div>`;
