@@ -20,7 +20,8 @@ async function page(req) {
   const cache = await caches.open(CACHE);
   try {
     const res = await Promise.race([fetch(req), new Promise((_, no) => setTimeout(() => no(new Error('slow')), 4000))]);
-    if (res.ok) cache.put(pageKey(req.url), res.clone());
+    if (!res.ok) throw new Error('http ' + res.status); // a 4xx/5xx (e.g. a brief CDN outage) means serve the cached copy, not the error
+    cache.put(pageKey(req.url), res.clone());
     return res;
   } catch (e) {
     return (await cache.match(pageKey(req.url))) || (await cache.match(new URL('./', self.registration.scope).href)) || Response.error();
