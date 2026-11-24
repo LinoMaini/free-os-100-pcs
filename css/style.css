@@ -20,7 +20,7 @@ a{color:inherit}
 main{position:relative;z-index:1}
 :focus-visible{outline:3px dashed var(--ink);outline-offset:3px}
 
-.nav{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:14px;padding:10px max(4vw,16px);background:var(--bg);border-bottom:3px solid var(--ink)}
+.nav{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:14px;padding:calc(10px + env(safe-area-inset-top,0px)) max(4vw,16px) 10px;background:var(--bg);border-bottom:3px solid var(--ink)}
 .logo{font:20px/1 var(--display);text-decoration:none;background:var(--paper);border:3px solid var(--ink);box-shadow:3px 3px 0 var(--ink);padding:8px 12px;rotate:-2deg;white-space:nowrap}
 .links{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;flex:1}
 .links a{text-decoration:none;font-weight:700;padding:10px 12px;border:2px solid transparent;white-space:nowrap}
