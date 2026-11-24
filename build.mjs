@@ -40,7 +40,8 @@ const assets = ['./', `css/style.css?v=${stamp('css/style.css')}`, `js/app.js?v=
   'manifest.webmanifest', ...list('icons', '.png'), 'join/', `js/join.js?v=${stamp('js/join.js')}`];
 const sw = readFileSync('src/sw.template.js', 'utf8');
 const version = createHash('sha1').update(JSON.stringify(assets)).update(page).update(joinPage).update(sw)
-  .update(readFileSync('manifest.webmanifest')).update(list('icons', '.png').map((f) => stamp(f)).join()).digest('hex').slice(0, 10);
+  .update(readFileSync('manifest.webmanifest')).update(list('icons', '.png').map((f) => stamp(f)).join())
+  .update(list('fonts', '.woff2').map((f) => stamp(f)).join()).digest('hex').slice(0, 10);
 writeFileSync('sw.js', sw.replace('__VERSION__', version).replace('__ASSETS__', JSON.stringify(assets)));
 const html = page.replace(/<link rel="(preload|manifest|apple-touch-icon)"[^>]*>\n?/g, '');
 // fonts go inside the file too, so the offline copy looks the same from a USB stick
