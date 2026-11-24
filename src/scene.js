@@ -462,9 +462,11 @@ export function createStage(canvas, scenes, sections, opts = {}) {
   let pointerX = 0, pointerY = 0;
   let lastActive = performance.now(), skipFrame = false;
   const wake = () => { lastActive = performance.now(); };
-  for (const ev of ['scroll', 'pointermove', 'pointerdown', 'keydown', 'wheel', 'touchstart', 'resize']) window.addEventListener(ev, wake, { passive: true });
+  const WAKE_EVENTS = ['scroll', 'pointermove', 'pointerdown', 'keydown', 'wheel', 'touchstart', 'resize'];
+  for (const ev of WAKE_EVENTS) window.addEventListener(ev, wake, { passive: true });
+  const onPointer = (e) => { pointerX = (e.clientX / W) * 2 - 1; pointerY = (e.clientY / H) * 2 - 1; };
   if (!reduce && window.matchMedia('(pointer: fine)').matches) {
-    window.addEventListener('pointermove', (e) => { pointerX = (e.clientX / W) * 2 - 1; pointerY = (e.clientY / H) * 2 - 1; }, { passive: true });
+    window.addEventListener('pointermove', onPointer, { passive: true });
   }
 
   const tgBg = new THREE.Color(), bgC = new THREE.Color(scenes[sections[0]?.dataset.scene]?.bg || PAL.yellow), innerC = new THREE.Color();
@@ -804,7 +806,7 @@ export function createStage(canvas, scenes, sections, opts = {}) {
   window.addEventListener('resize', resize);
 
   // a slower computer gets fewer pixels and samples
-  perf.on(() => {
+  const offPerf = perf.on(() => {
     const q = Q[perf.level];
     if (mainRT.samples !== q.ms) { mainRT.dispose(); mainRT.samples = q.ms; mainRT2.dispose(); mainRT2.samples = q.ms; }
     const ps = Math.min(2, q.ms);
@@ -906,6 +908,15 @@ export function createStage(canvas, scenes, sections, opts = {}) {
     replayStickers() { if (!reduce) introT = 1.1; },
     // spin into a tunnel; at the deepest point the page jumps (cb) and the computer drops in again
     warp(cb) { if (warpT >= 0 || reduce) { if (reduce) cb(); return; } warpT = 0; warpPeak = cb; sfx.whoosh(); glitchT = 0.4; },
-    stop() { cancelAnimationFrame(raf); },
+    stop() {
+      cancelAnimationFrame(raf);
+      for (const ev of WAKE_EVENTS) window.removeEventListener(ev, wake);
+      window.removeEventListener('pointermove', onPointer);
+      window.removeEventListener('resize', resize);
+      window.removeEventListener('load', measure);
+      ro.disconnect();
+      offPerf();
+      mainRT.dispose(); mainRT2.dispose(); rt.dispose();
+    },
   };
 }

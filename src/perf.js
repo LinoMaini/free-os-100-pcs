@@ -15,7 +15,7 @@ export const perf = {
     document.documentElement.dataset.q = String(l);
     for (const f of this.subs) f(l);
   },
-  on(f) { this.subs.add(f); },
+  on(f) { this.subs.add(f); return () => this.subs.delete(f); },
 };
 document.documentElement.dataset.q = '0';
 
