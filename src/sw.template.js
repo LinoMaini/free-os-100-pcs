@@ -19,7 +19,9 @@ const pageKey = (url) => { const u = new URL(url); u.search = ''; u.hash = ''; u
 async function page(req) {
   const cache = await caches.open(CACHE);
   try {
-    const res = await Promise.race([fetch(req), new Promise((_, no) => setTimeout(() => no(new Error('slow')), 4000))]);
+    let timer;
+    const res = await Promise.race([fetch(req), new Promise((_, no) => { timer = setTimeout(() => no(new Error('slow')), 4000); })]);
+    clearTimeout(timer); // fetch won the race: drop the timer so its promise never rejects unhandled
     if (!res.ok) throw new Error('http ' + res.status); // a 4xx/5xx (e.g. a brief CDN outage) means serve the cached copy, not the error
     cache.put(pageKey(req.url), res.clone());
     return res;
