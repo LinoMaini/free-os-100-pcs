@@ -116,7 +116,7 @@ body[data-view=pc] .v-pc,body[data-view=code] .v-code{display:grid}
 </style>
 </head>
 <body data-view="">
-<main class="view v-pc" aria-live="polite">
+<main class="view v-pc">
   <div class="top">
     <p class="tag"><small>PC</small><span id="num">…</span><span class="of">/100</span></p>
     <span id="dot" role="img" aria-label="Connection"></span>
@@ -141,18 +141,18 @@ body[data-view=pc] .v-pc,body[data-view=code] .v-code{display:grid}
     <div class="neck"></div>
     <div class="base"></div>
   </div>
-  <p id="cap"></p>
+  <p id="cap" aria-live="polite"></p>
   <p id="note" hidden>No connection</p>
   <p class="foot">wedarealgoat.dev</p>
 </main>
-<main class="view v-code">
+<section class="view v-code" aria-label="Join a presentation">
   <form id="codeForm" autocomplete="off">
     <label for="code">Code</label>
     <input id="code" name="code" inputmode="text" autocapitalize="characters" spellcheck="false" maxlength="6" required>
     <button class="go" type="submit">Join</button>
   </form>
   <p class="foot">wedarealgoat.dev</p>
-</main>
+</section>
 <script src="../js/join.js?v=ebff329285" defer></script>
 </body>
 </html>
