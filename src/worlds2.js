@@ -304,22 +304,28 @@ export function addAbsurdWorlds(W) {
     const L5 = new THREE.Group(), L5in = new THREE.Group();
     L5.add(L5in);
     group.add(L5);
-    const slab = part(rbox(4.0, 0.8, 2.0, 0.08), toon('#B8BEC8'), 0.03);
-    slab.position.set(0, -0.75, 0);
+    // the transistor reads as a little podium: source (left) and drain (right) are the two side steps,
+    // the gate the raised middle, and current runs through the channel between them once it's ON.
+    // Width stays 4.0 so the zoom hands off cleanly from the bit (see S5); heights/depth are trimmed and the
+    // whole set is lifted so it sits centred on the camera's look point (0,0,0) instead of dropping off-frame.
+    const DEP = 1.5;                 // one shallow depth for every block: far less crowded than the old 1.6–2.0
+    const SLAB_Y = -0.55, SIDE_Y = -0.07, GATE_Y = 0.42;
+    const slab = part(rbox(4.0, 0.6, DEP + 0.2, 0.08), toon('#B8BEC8'), 0.03);
+    slab.position.set(0, SLAB_Y, 0);
     L5in.add(slab);
-    const src = part(rbox(1.1, 0.3, 1.6, 0.06), toon(PAL.coral), 0.02); src.position.set(-1.25, -0.25, 0);
-    const drn = part(rbox(1.1, 0.3, 1.6, 0.06), toon(PAL.sky), 0.02); drn.position.set(1.25, -0.25, 0);
-    const oxide = part(rbox(1.3, 0.08, 1.6, 0.02), toon(PAL.white), 0.015); oxide.position.set(0, -0.06, 0);
-    const gate = part(rbox(1.2, 0.55, 1.6, 0.06), toon(PAL.yellow), 0.02); gate.position.set(0, 0.26, 0);
+    const src = part(rbox(1.15, 0.34, DEP, 0.07), toon(PAL.coral), 0.02); src.position.set(-1.32, SIDE_Y, 0);
+    const drn = part(rbox(1.15, 0.34, DEP, 0.07), toon(PAL.sky), 0.02); drn.position.set(1.32, SIDE_Y, 0);
+    const oxide = part(rbox(1.3, 0.08, DEP, 0.02), toon(PAL.lime), 0.015); oxide.position.set(0, 0.1, 0);
+    const gate = part(rbox(1.05, 0.5, DEP, 0.07), toon(PAL.yellow), 0.02); gate.position.set(0, GATE_Y, 0);
     L5in.add(src, drn, oxide, gate);
     const onLab = makeLabel('1 = ON', PAL.lime);
-    onLab.scale.setScalar(0.8);
-    onLab.position.set(0, 1.25, 0.3);
+    onLab.position.set(0, 1.0, 0.3);
     L5in.add(onLab);
-    const EN = 36;
-    const electrons = new THREE.InstancedMesh(new THREE.SphereGeometry(0.1, 12, 10), basic(null, { color: '#00E5FF' }), EN);
+    // the current: two tidy lanes of electrons gliding through the channel, not a scattered cloud
+    const EN = 18;
+    const electrons = new THREE.InstancedMesh(new THREE.SphereGeometry(0.075, 14, 12), basic(null, { color: '#2BE8FF' }), EN);
     electrons.frustumCulled = false;
-    const eSeed = Array.from({ length: EN }, (_, i) => ({ u: i / EN, z: (((i * 37) % 11) / 11 - 0.5) * 1.3, y: (((i * 53) % 7) / 7) * 0.12 }));
+    const eSeed = Array.from({ length: EN }, (_, i) => ({ u: i / EN, lane: i % 2 ? 1 : -1 }));
     L5in.add(electrons);
 
     // ---- a rain of 0s and 1s for the deepest levels (not scaled with the levels) ----
@@ -432,23 +438,34 @@ export function addAbsurdWorlds(W) {
           setS(L4, Z / S4);
         }
 
-        // level 5
+        // level 5 — build the transistor one part at a time as we arrive, then switch it ON
         const v5 = Z >= A5;
         L5.visible = v5;
         if (v5) {
-          setS(L5in, easeOutBack(win(Z, A5, A5 * 1.5)));
-          setS(onLab, 0.8 * easeOutBack(win(Z, ZEND * 0.7, ZEND * 0.92)));
+          const slabK = reduce ? 1 : easeOutBack(win(Z, A5 * 0.95, A5 * 1.22));
+          const sideK = reduce ? 1 : easeOutBack(win(Z, A5 * 1.12, A5 * 1.5));
+          const oxK = reduce ? 1 : win(Z, A5 * 1.3, A5 * 1.7);
+          const gateK = reduce ? 1 : easeOutBack(win(Z, A5 * 1.45, A5 * 1.95));
+          const onK = reduce ? 1 : win(Z, ZEND * 0.66, ZEND * 0.9); // the gate goes ON last
+          setS(slab, slabK);                                         // the body lies down first
+          src.position.y = drn.position.y = SIDE_Y - (1 - sideK) * 0.5; // source and drain rise out of it
+          setS(src, sideK); setS(drn, sideK);
+          setS(oxide, oxK);
+          gate.position.y = GATE_Y + (1 - gateK) * 0.9 + (reduce ? 0 : onK * Math.sin(t * 7) * 0.02); // gate drops on, then hums
+          setS(gate, gateK);
+          setS(onLab, 0.8 * (reduce ? 1 : easeOutBack(win(Z, ZEND * 0.68, ZEND * 0.9))));
+          // current: two lanes, full-size across the channel, fading only at the mouths, flowing once ON
           for (let i = 0; i < EN; i++) {
             const e = eSeed[i];
-            const u = reduce ? e.u : (e.u + t * 0.35) % 1;
-            // the current flows from source to drain along the front, where the camera can see it
-            dummy.position.set(-1.7 + u * 3.4, -0.24 + e.y + Math.sin(u * Math.PI) * 0.08, 0.92 + e.z * 0.12);
-            dummy.scale.setScalar(Math.sin(u * Math.PI) * 1.1 + 0.2);
+            const u = reduce ? e.u : (e.u + t * 0.22) % 1;
+            const flow = onK * Math.min(1, Math.sin(u * Math.PI) * 5);
+            dummy.position.set(-1.02 + u * 2.04, 0.12 + e.lane * 0.045 + (reduce ? 0 : Math.sin(t * 6 + i * 1.7) * 0.012), 0.78 + e.lane * 0.025);
+            dummy.scale.setScalar(Math.max(flow, 0.0001));
             dummy.updateMatrix();
             electrons.setMatrixAt(i, dummy.matrix);
           }
           electrons.instanceMatrix.needsUpdate = true;
-          gate.position.y = 0.26 + (reduce ? 0 : Math.sin(t * 8) * 0.015);
+          electrons.visible = onK > 0.01;
           setS(L5, Z / S5);
         }
 
