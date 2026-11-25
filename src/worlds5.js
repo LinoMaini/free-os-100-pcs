@@ -209,6 +209,31 @@ export function addLinoWorlds(W) {
     power.scale.setScalar(0.27);
     monitor.add(power);
 
+    // the hardware the operating system drives: a keyboard and a mouse on the desk in front
+    const kb = new THREE.Group();
+    kb.add(part(rbox(2.1, 0.14, 0.7, 0.06), toon(PAL.white), 0.02));
+    const keys = new THREE.InstancedMesh(rbox(0.15, 0.08, 0.14, 0.03), toon(PAL.ink), 33);
+    const kd = new THREE.Object3D();
+    let kk = 0;
+    for (let r = 0; r < 3; r++) for (let c = 0; c < 11; c++) { kd.position.set(-0.86 + c * 0.172, 0.09, -0.2 + r * 0.2); kd.updateMatrix(); keys.setMatrixAt(kk++, kd.matrix); }
+    kb.add(keys);
+    kb.position.set(-0.2, -2.12, 0.8);
+    kb.rotation.x = 0.38;
+    root.add(kb);
+    const mouse = part(rbox(0.3, 0.14, 0.46, 0.13), toon(PAL.white), 0.02);
+    mouse.position.set(1.32, -2.12, 0.86);
+    mouse.rotation.x = 0.38;
+    root.add(mouse);
+    // the operating system sits between the two: the software on the screen, the hardware on the desk
+    const swTag = makeLabel('SOFTWARE', PAL.yellow);
+    swTag.position.set(1.0, 1.6, 0.5);
+    swTag.rotation.z = -0.07;
+    root.add(swTag);
+    const hwTag = makeLabel('HARDWARE', PAL.pink);
+    hwTag.position.set(-2.0, -1.45, 0.95);
+    hwTag.rotation.z = 0.08;
+    root.add(hwTag);
+
     const dark = new THREE.Color('#0E1230');
     const sky = new THREE.Color(PAL.sky);
     const deskItems = [taskbar, win, ...icons];
@@ -239,6 +264,18 @@ export function addLinoWorlds(W) {
           el.visible = sc > 0.01;
         });
         win.position.y = 0.12 + (reduce ? 0 : Math.sin(lt * 1.6) * 0.02);
+
+        // the two stickers pop up once the desktop is there: software first, then hardware
+        const sw = reduce ? 1 : easeOutBack(smooth(2.3, 2.8, lt));
+        swTag.scale.setScalar(Math.max(0.55 * sw, 0.0001));
+        swTag.visible = sw > 0.01;
+        swTag.position.y = 1.6 + (reduce ? 0 : Math.sin(t * 1.4) * 0.05);
+        const hw = reduce ? 1 : easeOutBack(smooth(3.3, 3.8, lt));
+        hwTag.scale.setScalar(Math.max(0.55 * hw, 0.0001));
+        hwTag.visible = hw > 0.01;
+        hwTag.position.y = -1.45 + (reduce ? 0 : Math.sin(t * 1.7 + 1) * 0.05);
+        // the keys light up with the screen
+        keys.material.color.set(on > 0.5 ? '#1d2b4f' : PAL.ink);
 
         // the cursor glides to the window and clicks, then keeps wandering over the desktop
         const show = reduce ? 1 : smooth(2.6, 3.0, lt);
@@ -292,7 +329,7 @@ export function addLinoWorlds(W) {
 
     // the price tag and the little FREE sticker
     const tag = makeLabel('€0', PAL.yellow);
-    tag.scale.setScalar(0.55);
+    tag.scale.setScalar(0.66);
     tag.position.set(-0.35, 2.0, 0.5); // above the open shackle, not on it
     root.add(tag);
     const freeTag = makeLabel('FREE', PAL.lime);
@@ -300,6 +337,15 @@ export function addLinoWorlds(W) {
     freeTag.position.set(1.85, 0.55, 0.4);
     freeTag.rotation.z = -0.12;
     root.add(freeTag);
+
+    // open code: little </> tokens fly out of the open lock to the PCs, one after another
+    const tokens = Array.from({ length: 6 }, (_, i) => {
+      const tk = makeLabel('</>', [PAL.white, PAL.yellow, PAL.sky][i % 3]);
+      tk.visible = false;
+      root.add(tk);
+      return tk;
+    });
+    const TP = 2.6;
 
     // a USB stick that hops along carrying the update
     const usb = usbStick();
@@ -332,9 +378,25 @@ export function addLinoWorlds(W) {
           m.userData.scr.position.z = 0.045 + (reduce ? 0 : k * 0.02);
         });
 
+        // </> tokens: each one arcs from the top of the open lock to a PC, which bumps when it lands
+        minis.forEach((m) => { m.userData.bump = 0; });
+        tokens.forEach((tk, i) => {
+          const local = lt - 1.7 - i * (TP / tokens.length);
+          if (reduce || local < 0) { tk.visible = false; return; }
+          const lap = Math.floor(local / TP), p = (local % TP) / TP;
+          const m = minis[(i * 7 + lap * 5) % minis.length];
+          const e = p < 0.5 ? 2 * p * p : 1 - (-2 * p + 2) ** 2 / 2;
+          tk.position.set(lerp(0.1, m.position.x, e), lerp(1.05, m.position.y + 0.12, e) + Math.sin(p * Math.PI) * 0.7, lerp(0.7, m.position.z + 0.15, e));
+          tk.scale.setScalar(Math.max(0.3 * Math.sin(Math.min(1, p * 1.15) * Math.PI) ** 0.6, 0.0001));
+          tk.rotation.z = Math.sin((lt + i) * 3) * 0.2;
+          tk.visible = p < 0.87;
+          if (p > 0.82) m.userData.bump = Math.max(m.userData.bump, 1 - Math.abs(p - 0.9) / 0.08);
+        });
+        minis.forEach((m) => { if (m.userData.bump > 0) m.scale.multiplyScalar(1 + 0.12 * m.userData.bump); });
+
         // the €0 tag pops up when the lock opens and floats
         const tagS = reduce ? 1 : easeOutBack(smooth(1.0, 1.5, lt));
-        tag.scale.setScalar(Math.max(0.55 * tagS, 0.0001));
+        tag.scale.setScalar(Math.max(0.66 * tagS, 0.0001));
         tag.visible = tagS > 0.01;
         tag.position.y = 2.0 + (reduce ? 0 : Math.sin(t * 1.5) * 0.06);
         tag.rotation.z = reduce ? 0 : Math.sin(t * 1.1) * 0.05;

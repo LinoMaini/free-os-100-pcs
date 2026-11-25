@@ -201,7 +201,7 @@ import { initTerm } from './term.js';
   const partMs = (k) => Math.max(10, (PART_SECS[k] ?? 180) * (slotQ > 0 ? slotQ / 180 : 1)) * 1000;
   // each speaker takes a run of stops in page order, so the tour scrolls straight down the page
   const PARTS = [
-    [['world', 43], ['top', 23], ['os', 43], ['free', 51]], // Lino Maini: the mission, the question, what an OS is and why free and open (seconds of his 2:40, from his script)
+    [['world', 20], ['top', 15], ['os', 60], ['free', 60]], // Lino Maini: the mission, the question, what an OS is and why free and open (seconds of his 2:40, from his script)
     [['teardown', 30], ['challenge', 26], ['method', 30], ['energy', 16], ['access', 18]], // Dennis Boschi: inside the computer, how we narrowed it down, energy and accessibility
     [['mint', 40], ['zorin', 30], ['endless', 34], ['scores', 36], ['pick', 30]], // Roberto Cacace: the three systems (live desktops on Zorin and Endless), the scores and our pick
     [['install', 60], ['plan', 24], ['bonus', 26], ['end', 20]], // Davide Miron: how to install it, the plan and the close

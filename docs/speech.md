@@ -51,39 +51,31 @@ Pronuncia delle parole più difficili:
 
 *The mission, what an operating system is, why free and open · 2 minutes 40 · simple English*
 
-Tempi del tour (la tua chiavetta dura 2:40): The mission 0:00–0:44 (quattro cartelli, il tour li cambia da solo), Their first computer 0:44–1:08, What an operating system is 1:08–1:51, Why free and open 1:51–2:40. Linea rossa a 2:10, la chiavetta trema a 2:30; a 2:40 il tour passa da solo a Dennis. Versione Word con traduzione e pronuncia: `docs/Discorso-Lino.docx`.
+Tempi del tour (la tua chiavetta dura 2:40): The mission 0:00–0:21 (quattro cartelli veloci, il tour li cambia da solo), Their first computer 0:21–0:38, What an operating system is 0:38–1:40, Why free and open 1:40–2:40. Linea rossa a 2:10, la chiavetta trema a 2:30; a 2:40 il tour passa da solo a Dennis. Versione Word con traduzione e pronuncia: `docs/Discorso-Lino.docx`.
 
 **[The mission]**
 
-*(Cartello 1 – 100 donated PCs)*
+*(Cartello 1 – 100 donated PCs)* Good morning, everyone. Asus wants to give one hundred computers to an NGO.
 
-Good morning, everyone. Asus wants to give one hundred computers to an NGO. They will go to places very different from here.
+*(Cartello 2 – 2 billion people are still offline)* Two billion people are still offline.
 
-*(Cartello 2 – 2 billion people are still offline)*
+*(Cartello 3 – Wi-Fi and power come and go)* There, Wi-Fi and electricity often stop working.
 
-Two billion people in the world are still offline. In poor countries, only 32 percent of people use the internet.
-
-*(Cartello 3 – Wi-Fi and power come and go)*
-
-In these places, Wi-Fi and electricity often stop working. And many people have never used a computer.
-
-*(Cartello 4 – Our job)*
-
-**So this is our job: choose a free system that works anyway.**
+*(Cartello 4 – Our job)* **Our job: choose a free system that works anyway.**
 
 **[Their first computer]**
 
-For many people, this will be their first computer. I am Lino, and with Dennis, Roberto and Davide, we will answer one question: **which free operating system should these computers use?** But first, two simple ideas.
+For many, this will be their first computer. I’m Lino, and with Dennis, Roberto and Davide, we’ll answer one question: **which free operating system should they use?**
 
 **[What an operating system is]**
 
-First idea: what is an operating system? A computer alone is only metal and plastic. The operating system is the software that makes it work. It gives you the desktop, the windows, the files and the apps. **Without it, the computer can’t do anything.**
+First: what is an operating system? A computer alone is only metal and plastic. The operating system is the **software** that makes it work. It gives you the desktop, the windows, the files and the apps. It also controls the **hardware**: the keyboard, the screen and the memory. **Without it, the computer can’t do anything.**
 
-Windows and macOS are the most famous ones, but they cost money and their code is secret. Our three systems do the same job, for free.
+Windows and macOS are the most famous ones, but they cost money and their code is secret. Our three systems are based on Linux, and they do the same job, for free.
 
 **[Why free and open]**
 
-Second idea: why free and open? **Free** means you don’t pay for a licence: not for one computer, and not for one hundred. **Open** means everybody can see the code, use it, copy it and share it.
+Second: why free and open? **Free** means you don’t pay for a licence: not for one computer, and not for one hundred. **Open** means everybody can see the code, use it, copy it and share it. And because the code is open, people all over the world help to fix problems and keep it safe.
 
 That’s why you see zero euros on the screen: **zero euros to install the same system on every PC.** And a teacher can update all the computers with a USB stick, even without internet.
 
