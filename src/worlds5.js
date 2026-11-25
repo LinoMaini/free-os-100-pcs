@@ -94,16 +94,16 @@ function padlock() {
   const kb = new THREE.Mesh(rbox(0.11, 0.3, 0.02, 0.02), toon(PAL.ink));
   kb.position.set(0, -0.14, 0.27);
   g.add(kh, kb);
-  // the shackle hangs from a pivot at the top of the right leg, so opening swings the left leg clear
+  // the shackle turns on its long right leg: closed, both legs sit in the body; open, it lifts and swings round
   const pivot = new THREE.Group();
   pivot.position.set(0.34, 0.58, 0);
   const steel = '#C6C6D0';
   const bend = part(new THREE.TorusGeometry(0.34, 0.11, 12, 26, Math.PI), toon(steel), 0.02);
   bend.position.set(-0.34, 0, 0);
-  const legR = part(new THREE.CylinderGeometry(0.11, 0.11, 0.5, 18), toon(steel), 0.018);
-  legR.position.set(0, -0.25, 0);
-  const legL = part(new THREE.CylinderGeometry(0.11, 0.11, 0.5, 18), toon(steel), 0.018);
-  legL.position.set(-0.68, -0.25, 0);
+  const legR = part(new THREE.CylinderGeometry(0.11, 0.11, 0.78, 18), toon(steel), 0.018);
+  legR.position.set(0, -0.39, 0);
+  const legL = part(new THREE.CylinderGeometry(0.11, 0.11, 0.46, 18), toon(steel), 0.018);
+  legL.position.set(-0.68, -0.23, 0);
   pivot.add(bend, legR, legL);
   g.add(pivot);
   g.userData.pivot = pivot;
@@ -166,22 +166,26 @@ export function addLinoWorlds(W) {
     // the monitor
     const monitor = new THREE.Group();
     root.add(monitor);
-    monitor.add(part(rbox(3.2, 2.1, 0.22, 0.12), toon(PAL.ink), 0.02));
+    monitor.add(part(rbox(3.2, 2.34, 0.22, 0.12), toon(PAL.white), 0.02));
+    const SY = 0.13; // the screen sits high, leaving a chin for the power button
     const screen = new THREE.Mesh(new THREE.PlaneGeometry(2.86, 1.76), new THREE.MeshBasicMaterial({ color: '#0E1230', toneMapped: false }));
-    screen.position.z = 0.12;
+    screen.position.set(0, SY, 0.12);
     monitor.add(screen);
+    const bezel = part(rbox(2.94, 1.84, 0.02, 0.05), toon(PAL.ink));
+    bezel.position.set(0, SY, 0.112);
+    monitor.add(bezel);
     const wall = new THREE.Mesh(rbox(2.86, 1.76, 0.02, 0.06), toonNew(PAL.sky));
-    wall.position.z = 0.125;
+    wall.position.set(0, SY, 0.125);
     monitor.add(wall);
-    const neck = part(rbox(0.32, 0.5, 0.2, 0.06), toon(PAL.ink));
-    neck.position.set(0, -1.38, 0);
-    const foot = part(rbox(1.15, 0.16, 0.5, 0.06), toon(PAL.white));
-    foot.position.set(0, -1.64, 0.1);
+    const neck = part(rbox(0.36, 0.46, 0.2, 0.06), toon(PAL.white));
+    neck.position.set(0, -1.4, -0.02);
+    const foot = part(rbox(1.25, 0.16, 0.56, 0.06), toon(PAL.white));
+    foot.position.set(0, -1.66, 0.06);
     monitor.add(neck, foot);
 
     // the desktop, built just in front of the screen
     const desk = new THREE.Group();
-    desk.position.z = 0.14;
+    desk.position.set(0, SY, 0.14);
     monitor.add(desk);
     const taskbar = taskbarProp(2.7, [COLORS.zorin, COLORS.endless, PAL.yellow, PAL.pink]);
     taskbar.position.set(0, -0.74, 0);
@@ -199,47 +203,54 @@ export function addLinoWorlds(W) {
     cursor.scale.setScalar(0.62);
     desk.add(cursor);
 
-    // the power button, out in front
+    // the power button, on the chin under the screen
     const power = powerButton();
-    power.position.set(0, -2.02, 0.55);
-    power.scale.setScalar(0.52);
-    root.add(power);
+    power.position.set(0, -0.98, 0.12);
+    power.scale.setScalar(0.27);
+    monitor.add(power);
 
     const dark = new THREE.Color('#0E1230');
     const sky = new THREE.Color(PAL.sky);
     const deskItems = [taskbar, win, ...icons];
-    const LOOP = 7.2;
     W.osdesk = {
       group,
+      // plays once each time the slide arrives (t restarts then), and then stays on: no reboot every few seconds
       update(t, dt, reduce) {
-        const lt = reduce ? 3.4 : t % LOOP;
+        const lt = reduce ? 9 : t;
         floaters.update(reduce ? 0 : t, 0.9);
         cogs.forEach((c, i) => { c.rotation.z = (reduce ? 0 : t) * (0.5 - i * 0.12) * (i % 2 ? -1 : 1); });
 
-        // power button: pulse while asleep, click on at lt ~ 0.9
+        // power button: pulses while asleep, pressed at ~0.9 s
         const asleep = 1 - smooth(0.85, 1.05, lt);
-        power.scale.setScalar(0.52 * (1 - 0.22 * asleep * (reduce ? 0 : Math.max(0, Math.sin(lt * 4)))));
-        power.position.y = -2.02 + (reduce ? 0 : asleep * Math.sin(lt * 2) * 0.03);
+        const press = smooth(0.8, 0.9, lt) * (1 - smooth(0.95, 1.15, lt));
+        power.scale.setScalar(0.27 * (1 - 0.18 * asleep * (reduce ? 0 : Math.max(0, Math.sin(lt * 5)))));
+        power.position.z = 0.12 - press * 0.05;
 
-        // the screen lights up
-        const on = smooth(1.0, 1.5, lt) * (1 - smooth(LOOP - 0.5, LOOP, lt));
-        screen.material.color.copy(dark).lerp(sky, reduce ? 1 : on);
-        wall.visible = (reduce ? 1 : on) > 0.02;
-        wall.scale.setScalar(Math.max(reduce ? 1 : on, 0.0001));
+        // the screen lights up and stays on
+        const on = reduce ? 1 : smooth(1.0, 1.5, lt);
+        screen.material.color.copy(dark).lerp(sky, on);
+        wall.visible = on > 0.02;
+        wall.scale.setScalar(Math.max(on, 0.0001));
 
         // the desktop assembles, piece by piece
         deskItems.forEach((el, i) => {
-          const s = reduce ? 1 : easeOutBack(smooth(1.5 + i * 0.22, 2.0 + i * 0.22, lt)) * (1 - smooth(LOOP - 0.45, LOOP, lt));
-          el.scale.setScalar(Math.max(s, 0.0001));
-          el.visible = s > 0.01;
+          const sc = reduce ? 1 : easeOutBack(smooth(1.5 + i * 0.22, 2.0 + i * 0.22, lt));
+          el.scale.setScalar(Math.max(sc, 0.0001));
+          el.visible = sc > 0.01;
         });
         win.position.y = 0.12 + (reduce ? 0 : Math.sin(lt * 1.6) * 0.02);
 
-        // the cursor glides over to the window and clicks
-        const show = reduce ? 1 : smooth(2.6, 3.0, lt) * (1 - smooth(LOOP - 0.45, LOOP, lt));
+        // the cursor glides to the window and clicks, then keeps wandering over the desktop
+        const show = reduce ? 1 : smooth(2.6, 3.0, lt);
         cursor.visible = show > 0.01;
         const path = reduce ? 1 : smooth(3.0, 4.2, lt);
-        cursor.position.set(lerp(0.9, 0.2, path), lerp(-0.7, 0.2, path), 0.05);
+        let cx = lerp(0.9, 0.2, path), cy = lerp(-0.7, 0.2, path);
+        if (!reduce && lt > 5.2) {
+          const w = smooth(5.2, 6.2, lt), u = (lt - 5.2) * 0.55;
+          cx = lerp(cx, 0.2 + Math.sin(u) * 0.62, w);
+          cy = lerp(cy, 0.08 + Math.sin(u * 2) * 0.26, w);
+        }
+        cursor.position.set(cx, cy, 0.05);
         const click = reduce ? 0 : Math.max(0, Math.sin((lt - 4.2) * 7)) * smooth(4.2, 4.35, lt) * (1 - smooth(4.9, 5.1, lt));
         cursor.scale.setScalar(0.62 * (1 - click * 0.2) * show);
       },
@@ -282,7 +293,7 @@ export function addLinoWorlds(W) {
     // the price tag and the little FREE sticker
     const tag = makeLabel('€0', PAL.yellow);
     tag.scale.setScalar(0.55);
-    tag.position.set(0, 1.5, 0.5);
+    tag.position.set(-0.35, 2.0, 0.5); // above the open shackle, not on it
     root.add(tag);
     const freeTag = makeLabel('FREE', PAL.lime);
     freeTag.scale.setScalar(0.34);
@@ -296,17 +307,18 @@ export function addLinoWorlds(W) {
     usb.scale.setScalar(0.7);
     root.add(usb);
 
-    const LOOP = 7.2;
     W.freegift = {
       group,
+      // plays once each time the slide arrives, then the lock stays open and the PCs stay on
       update(t, dt, reduce) {
-        const lt = reduce ? 4.0 : t % LOOP;
+        const lt = reduce ? 9 : t;
         floaters.update(reduce ? 0 : t, 0.9);
 
-        // the lock springs open
-        const open = reduce ? 1 : easeOutBack(smooth(0.6, 1.15, lt)) * (1 - smooth(LOOP - 0.5, LOOP, lt));
-        pivot.position.y = 0.58 + open * 0.42;
-        pivot.rotation.z = open * 0.95;
+        // the lock springs open: the shackle lifts, then swings round on its long leg
+        const lift = reduce ? 1 : easeOutBack(smooth(0.6, 1.0, lt));
+        const swing = reduce ? 1 : easeOutBack(smooth(0.85, 1.4, lt));
+        pivot.position.y = 0.58 + lift * 0.42;
+        pivot.rotation.y = swing * 2.25;
         if (!reduce && lt > 0.6 && lt < 0.72) sfx.pop(560);
         lock.rotation.z = reduce ? 0 : Math.sin(t * 1.3) * 0.04;
         lock.position.y = -0.1 + (reduce ? 0 : Math.sin(t * 1.6) * 0.03);
@@ -316,24 +328,24 @@ export function addLinoWorlds(W) {
         minis.forEach((m) => {
           const k = clamp01(wave - m.userData.d);
           m.userData.scr.material.color.copy(m.userData.off).lerp(m.userData.on, k);
-          const pop = reduce ? 1 : 0.9 + easeOutBack(k) * 0.1;
-          m.scale.setScalar(pop);
+          m.scale.setScalar(reduce ? 1 : 0.9 + easeOutBack(k) * 0.1);
           m.userData.scr.position.z = 0.045 + (reduce ? 0 : k * 0.02);
         });
 
         // the €0 tag pops up when the lock opens and floats
-        const tagS = reduce ? 1 : easeOutBack(smooth(1.0, 1.5, lt)) * (1 - smooth(LOOP - 0.4, LOOP, lt));
+        const tagS = reduce ? 1 : easeOutBack(smooth(1.0, 1.5, lt));
         tag.scale.setScalar(Math.max(0.55 * tagS, 0.0001));
         tag.visible = tagS > 0.01;
-        tag.position.y = 1.5 + (reduce ? 0 : Math.sin(t * 1.5) * 0.06);
+        tag.position.y = 2.0 + (reduce ? 0 : Math.sin(t * 1.5) * 0.06);
         tag.rotation.z = reduce ? 0 : Math.sin(t * 1.1) * 0.05;
-        const freeS = reduce ? 1 : easeOutBack(smooth(1.4, 1.9, lt)) * (1 - smooth(LOOP - 0.4, LOOP, lt));
+        const freeS = reduce ? 1 : easeOutBack(smooth(1.4, 1.9, lt));
         freeTag.scale.setScalar(Math.max(0.34 * freeS, 0.0001));
         freeTag.visible = freeS > 0.01;
         freeTag.position.y = 0.55 + (reduce ? 0 : Math.sin(t * 1.8 + 1) * 0.05);
 
-        // the USB stick hops across the front, carrying the update
-        const hop = reduce ? 0.5 : (smooth(1.6, 4.6, lt));
+        // the USB stick hops across the front every few seconds, carrying the update
+        const cyc = reduce ? 0.5 : (lt < 1.6 ? 0 : ((lt - 1.6) % 6.5) / 3.6);
+        const hop = reduce ? 0.5 : smooth(0, 1, cyc);
         usb.position.x = lerp(-2.1, 2.1, hop);
         usb.position.y = -1.1 + (reduce ? 0 : Math.abs(Math.sin(hop * Math.PI * 4)) * 0.3);
         usb.rotation.z = reduce ? 0 : Math.sin(t * 6) * 0.15;

@@ -187,15 +187,19 @@ import { initOffline } from './offline.js';
   renderTotals();
 
   // ---------- the tour: four speakers, three minutes each ----------
-  // Each speaker's part lasts exactly SLOT. Inside a part the tour moves on by itself, giving every stop its share of the
+  // Each speaker's part lasts exactly its time (partMs). Inside a part the tour moves on by itself, giving every stop its share of the
   // time that is left, so a click forward or back just shares the rest out again. When the three minutes are up the tour
   // goes to the next speaker's first stop. The only clock is hidden in plain sight: the little USB stick in the top bar
   // walks across in three minutes, the line behind it turns red in the last 30 seconds and the stick shakes in the last 10.
   // ?slot=60 shortens every part (seconds), for a quick rehearsal
-  const SLOT = Math.max(10, Number(new URLSearchParams(location.search).get('slot')) || 180) * 1000;
+  // each speaker's time in seconds: Lino's opening is quicker (2:20), the others have three minutes.
+  // ?slot=N rehearses faster: N is what a three-minute part becomes, the others scale with it.
+  const PART_SECS = [140, 180, 180, 180];
+  const slotQ = Number(new URLSearchParams(location.search).get('slot'));
+  const partMs = (k) => Math.max(10, (PART_SECS[k] ?? 180) * (slotQ > 0 ? slotQ / 180 : 1)) * 1000;
   // each speaker takes a run of stops in page order, so the tour scrolls straight down the page
   const PARTS = [
-    [['world', 52], ['top', 26], ['os', 45], ['free', 57]], // Lino Maini: the mission, the question, what an OS is and why free and open (shares in seconds, from his script)
+    [['world', 41], ['top', 21], ['os', 34], ['free', 44]], // Lino Maini: the mission, the question, what an OS is and why free and open (seconds of his 2:20, from his script)
     [['teardown', 30], ['challenge', 26], ['method', 30], ['energy', 16], ['access', 18]], // Dennis Boschi: inside the computer, how we narrowed it down, energy and accessibility
     [['mint', 40], ['zorin', 30], ['endless', 34], ['scores', 36], ['pick', 30]], // Roberto Cacace: the three systems (live desktops on Zorin and Endless), the scores and our pick
     [['install', 60], ['plan', 24], ['bonus', 26], ['end', 20]], // Davide Miron: how to install it, the plan and the close
@@ -240,7 +244,7 @@ import { initOffline } from './offline.js';
   const pgFill = prog?.querySelector('.pg-fill'), pgStick = prog?.querySelector('.pg-stick');
   function paintClock() {
     if (!tour.on || !prog) return;
-    const left = SLOT - (performance.now() - tour.partStart), f = Math.min(1, Math.max(0, 1 - left / SLOT));
+    const S = partMs(tour.part), left = S - (performance.now() - tour.partStart), f = Math.min(1, Math.max(0, 1 - left / S));
     pgFill.style.transform = `scaleX(${f.toFixed(4)})`;
     pgStick.style.transform = `translateX(${(f * (prog.clientWidth - 42)).toFixed(1)}px)`;
     prog.classList.toggle('t-warn', left < 30000);
@@ -281,7 +285,7 @@ import { initOffline } from './offline.js';
       if (stop.el.classList.contains('hero')) liftHero(stop.el);
       // this stop's share of the time the speaker has left
       const rest = tourStops.slice(i).filter((s) => s.part === stop.part).reduce((a, s) => a + s.share, 0);
-      const left = Math.max(4000, SLOT - (performance.now() - tour.partStart));
+      const left = Math.max(4000, partMs(stop.part) - (performance.now() - tour.partStart));
       const dwell = (left * stop.share) / rest;
       const extra = reduceMotion ? 0 : Math.max(0, stop.el.offsetHeight - window.innerHeight * 1.2);
       const y0 = window.scrollY;
@@ -293,7 +297,7 @@ import { initOffline } from './offline.js';
         const w = String(stop.el.dataset.hold).split(/[\s,]+/).map(Number);
         const weights = holdBeats.map((_, k) => (w[k] > 0 ? w[k] : 1));
         const sum = weights.reduce((a, x) => a + x, 0);
-        const glide = Math.min(1400, dwell * 0.06);
+        const glide = Math.min(900, dwell * 0.05);
         const holdTotal = Math.max(0, dwell - glide * (holdBeats.length - 1));
         const marks = []; // [holdStart, holdEnd] in ms from the start of the stop
         let t = 0;

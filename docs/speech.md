@@ -2,7 +2,7 @@
 
 ## Come usarlo
 
-Ognuno ha 3 minuti esatti: all'inizio premete **Play the tour** e il sito divide il tempo così, scorrendo la pagina dall'alto in basso.
+Lino ha 2:20, gli altri 3 minuti esatti: all'inizio premete **Play the tour** e il sito divide il tempo così, scorrendo la pagina dall'alto in basso.
 
 | Chi | Tappe del tour |
 | --- | --- |
@@ -49,9 +49,9 @@ Pronuncia delle parole più difficili:
 
 ## Speaker 1 – Lino Maini
 
-*The mission, what an operating system is, why free and open · 3 minutes*
+*The mission, what an operating system is, why free and open · 2 minutes 20*
 
-Tempi del tour: The mission 0:00–0:54 (quattro cartelli, il tour li cambia da solo), Their first computer 0:54–1:21, What an operating system is 1:21–2:06, Why free and open 2:06–3:00. Quando la chiavetta diventa rossa (2:30) dovreste essere a “zero euros”; a 3:00 il tour passa da solo a Dennis.
+Tempi del tour (la tua chiavetta dura 2:20): The mission 0:00–0:42 (quattro cartelli, il tour li cambia da solo), Their first computer 0:42–1:05, What an operating system is 1:05–1:39, Why free and open 1:39–2:20. Quando la chiavetta diventa rossa (1:50) dovresti essere a “zero euros”; a 2:20 il tour passa da solo a Dennis.
 
 **[The mission]**
 
