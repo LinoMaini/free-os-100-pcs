@@ -195,7 +195,7 @@ import { initOffline } from './offline.js';
   const SLOT = Math.max(10, Number(new URLSearchParams(location.search).get('slot')) || 180) * 1000;
   // each speaker takes a run of stops in page order, so the tour scrolls straight down the page
   const PARTS = [
-    [['world', 30], ['top', 18], ['os', 20], ['free', 20]], // Lino Maini: the mission, the question, what an OS is and why free and open
+    [['world', 52], ['top', 26], ['os', 45], ['free', 57]], // Lino Maini: the mission, the question, what an OS is and why free and open (shares in seconds, from his script)
     [['teardown', 30], ['challenge', 26], ['method', 30], ['energy', 16], ['access', 18]], // Dennis Boschi: inside the computer, how we narrowed it down, energy and accessibility
     [['mint', 40], ['zorin', 30], ['endless', 34], ['scores', 36], ['pick', 30]], // Roberto Cacace: the three systems (live desktops on Zorin and Endless), the scores and our pick
     [['install', 60], ['plan', 24], ['bonus', 26], ['end', 20]], // Davide Miron: how to install it, the plan and the close
@@ -278,12 +278,34 @@ import { initOffline } from './offline.js';
     tbName.textContent = stop.el.dataset.stop;
     tbFill.style.width = '0%';
     scrollToEl(stop.el, () => {
+      if (stop.el.classList.contains('hero')) liftHero(stop.el);
       // this stop's share of the time the speaker has left
       const rest = tourStops.slice(i).filter((s) => s.part === stop.part).reduce((a, s) => a + s.share, 0);
       const left = Math.max(4000, SLOT - (performance.now() - tour.partStart));
       const dwell = (left * stop.share) / rest;
       const extra = reduceMotion ? 0 : Math.max(0, stop.el.offsetHeight - window.innerHeight * 1.2);
       const y0 = window.scrollY;
+      // a section with data-hold stops on each of its cards in turn (weights from the script), with a short glide between
+      const holdBeats = stop.el.hasAttribute('data-hold') && !reduceMotion ? [...stop.el.querySelectorAll(':scope > .beat')] : [];
+      let beatAt = null;
+      if (holdBeats.length > 1) {
+        const ys = holdBeats.map((b, k) => (k === 0 ? y0 : Math.max(y0, stopTop(b) + navH())));
+        const w = String(stop.el.dataset.hold).split(/[\s,]+/).map(Number);
+        const weights = holdBeats.map((_, k) => (w[k] > 0 ? w[k] : 1));
+        const sum = weights.reduce((a, x) => a + x, 0);
+        const glide = Math.min(1400, dwell * 0.06);
+        const holdTotal = Math.max(0, dwell - glide * (holdBeats.length - 1));
+        const marks = []; // [holdStart, holdEnd] in ms from the start of the stop
+        let t = 0;
+        weights.forEach((x) => { const h = (holdTotal * x) / sum; marks.push([t, t + h]); t += h + glide; });
+        beatAt = (e) => {
+          for (let k = 0; k < marks.length; k++) {
+            if (e < marks[k][1] || k === marks.length - 1) return ys[k];
+            if (e < marks[k + 1][0]) { const f = (e - marks[k][1]) / glide, q = f < 0.5 ? 4 * f * f * f : 1 - (-2 * f + 2) ** 3 / 2; return ys[k] + (ys[k + 1] - ys[k]) * q; }
+          }
+          return ys[ys.length - 1];
+        };
+      }
       tour.left = dwell;
       let last = performance.now();
       const tick = (now) => {
@@ -292,10 +314,11 @@ import { initOffline } from './offline.js';
         last = now;
         const p = Math.min(1, 1 - tour.left / dwell);
         // a tall section (the opening world, the opened computer, the tutorial) plays while its stop lasts
-        if (extra > 0) { html.style.scrollBehavior = 'auto'; window.scrollTo(0, y0 + extra * (p < 0.5 ? 2 * p * p : 1 - (-2 * p + 2) ** 2 / 2)); }
+        if (beatAt) { html.style.scrollBehavior = 'auto'; window.scrollTo(0, beatAt(p * dwell)); }
+        else if (extra > 0) { html.style.scrollBehavior = 'auto'; window.scrollTo(0, y0 + extra * (p < 0.5 ? 2 * p * p : 1 - (-2 * p + 2) ** 2 / 2)); }
         tbFill.style.width = `${p * 100}%`;
         if (tour.left <= 0) {
-          if (extra > 0) html.style.scrollBehavior = '';
+          if (extra > 0 || beatAt) html.style.scrollBehavior = '';
           // the last stop of a part waits for the speaker's time to run out instead of jumping ahead
           const nextStop = tourStops[i + 1];
           if (nextStop && nextStop.part === stop.part) go(i + 1);
@@ -305,11 +328,23 @@ import { initOffline } from './offline.js';
     });
   }
 
+  // on the title slide the team's names must not sit under the floating tour bar: lift the copy just enough
+  function liftHero(sec) {
+    const copy = sec.querySelector('.hero-copy'), by = sec.querySelector('.byline'), h1 = sec.querySelector('h1');
+    if (!copy || !by || !h1 || bar.hidden) return;
+    copy.style.setProperty('--lift', '0px');
+    const b = by.getBoundingClientRect(), t = bar.getBoundingClientRect();
+    if (b.right < t.left || b.left > t.right) return;
+    const need = b.bottom + 14 - t.top, room = h1.getBoundingClientRect().top - document.querySelector('.nav').getBoundingClientRect().bottom - 10;
+    if (need > 0) copy.style.setProperty('--lift', `${Math.max(0, Math.min(need, room))}px`);
+  }
+
   const tourButtons = [...document.querySelectorAll('[data-tour-start]')];
   const navTour = document.getElementById('tourBtn');
   function startTour() {
     tour.on = true;
     tour.paused = false;
+    html.classList.add('touring');
     tour.part = 0;
     tour.partStart = performance.now();
     bar.hidden = false;
@@ -323,6 +358,7 @@ import { initOffline } from './offline.js';
   }
   function stopTour() {
     tour.on = false;
+    html.classList.remove('touring');
     cancelAnimationFrame(tour.raf);
     cancelAnimationFrame(tour.clock);
     bar.hidden = true;

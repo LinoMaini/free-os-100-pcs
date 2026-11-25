@@ -2,14 +2,16 @@
 
 ## Come usarlo
 
-Un sistema a testa: Lino apre e presenta Linux Mint, Davide presenta Zorin OS Lite, Dennis Endless OS, e Roberto chiude con il confronto, la nostra scelta e il piano. Ognuno ha 3 minuti esatti: all'inizio premete **Play the tour** e il sito divide il tempo così.
+Ognuno ha 3 minuti esatti: all'inizio premete **Play the tour** e il sito divide il tempo così, scorrendo la pagina dall'alto in basso.
 
 | Chi | Tappe del tour |
 | --- | --- |
-| Lino | The mission, Their first computer, Inside the computer, Who we’re choosing for, About 100 in, 3 out, Linux Mint |
-| Davide | Zorin OS Lite (il tour resta qui 3 minuti: c’è tempo per la demo del desktop) |
-| Dennis | Endless OS (il tour resta qui 3 minuti: c’è tempo per la demo del desktop) |
-| Roberto | How they score, Energy, Accessibility, Our pick, How to install it, From box to classroom, Questions? |
+| Lino | The mission, Their first computer, What an operating system is, Why free and open |
+| Dennis | Inside the computer, Who we’re choosing for, About 100 in, 3 out, Energy, Accessibility |
+| Roberto | Linux Mint, Zorin OS Lite, Endless OS (demo dei desktop), How they score, Our pick |
+| Davide | How to install it, After the install, Fun fact: the heaviest system, Questions? |
+
+Nota: il copione di Lino segue già questa divisione; quelli di Dennis, Roberto e Davide qui sotto sono ancora divisi come prima e vanno riassegnati.
 
 Il timer è nascosto nella chiavetta USB con gli occhi, sotto la barra in alto: in 3 minuti attraversa lo schermo da sinistra a destra.
 
@@ -47,41 +49,45 @@ Pronuncia delle parole più difficili:
 
 ## Speaker 1 – Lino Maini
 
-*The mission and Linux Mint · 3 minutes*
+*The mission, what an operating system is, why free and open · 3 minutes*
+
+Tempi del tour: The mission 0:00–0:54 (quattro cartelli, il tour li cambia da solo), Their first computer 0:54–1:21, What an operating system is 1:21–2:06, Why free and open 2:06–3:00. Quando la chiavetta diventa rossa (2:30) dovreste essere a “zero euros”; a 3:00 il tour passa da solo a Dennis.
 
 **[The mission]**
 
-Good morning, everyone. What you see is a box of one hundred computers taking off from Asus, in Taiwan. Asus is donating them to an NGO, and they are flying to schools where being online is very different from here.
+*(Cartello 1 – 100 donated PCs)*
 
-Two billion people are still offline, and in low-income countries only 32 percent of people use the internet. Where these PCs are going, Wi-Fi and power come and go.
+Good morning, everyone. Asus is giving one hundred desktop computers to an NGO, and they are about to travel to places where being online is very different from here.
 
-**Our job: pick the free system that works anyway.**
+*(Cartello 2 – 2 billion people are still offline)*
+
+Two billion people are still offline. In low-income countries, only 32 percent of people use the internet.
+
+*(Cartello 3 – Wi-Fi and power come and go)*
+
+Where these PCs are going, Wi-Fi and power come and go, and many of the people who will use them have never had a computer.
+
+*(Cartello 4 – Our job)*
+
+**So our job is to pick the free system that works anyway.**
 
 **[Their first computer]**
 
-For many of these users, this will be their very first computer. I’m Lino, and together with Davide, Dennis and Roberto, I’m going to give you our answer.
+For many of them, this will be their very first computer. I’m Lino, and together with Dennis, Roberto and Davide, we will answer one question: **which free operating system should these hundred PCs run?** But first, two basics.
 
-**[Inside the computer]**
+**[What an operating system is]**
 
-Inside, every computer is the same: parts, a chip, code and bits. What changes everything for the user is the system on top.
+First basic: what is an operating system? On its own, a computer is just metal and plastic. The operating system is the software that wakes it up: the desktop, the windows, the files and every app you open. **Without it, the computer can do nothing.**
 
-**[Who we’re choosing for]**
+Windows and macOS are the famous ones, but they cost money and keep their code secret. Our three finalists do the same job, for free.
 
-One hundred identical desktops, installed once and used for years, often far from any technician, by people with no Windows habits to fall back on. **So the best system is not the most powerful one. It’s the one people can’t get lost in, and that keeps working when the internet doesn’t.**
+**[Why free and open]**
 
-**[About 100 in, 3 out]**
+Second basic: why free and open? **Free** means there is no licence to pay, on one computer or on all one hundred. **Open** means anyone can see how it works, run it, copy it and share it.
 
-We started from about one hundred free systems and asked four questions: is it really free and open, is it still updated, can a beginner use it, and is it the best of its kind? That ruled out ChromeOS Flex, which is closed, abandoned projects, expert systems like Arch, and good systems like Ubuntu that a finalist beat. **Three survived, and each of us will present one.**
+That’s the number on the screen: **zero euros to put the same system on every PC.** And it keeps paying off: no software bill as the lab grows, and updates that a teacher can carry from one PC to the next on a USB stick, even without internet.
 
-**[Linux Mint]**
-
-I’ll start with the familiar one: Linux Mint.
-
-Look at the screen: a menu in the corner, a taskbar at the bottom, windows with the usual buttons. It looks a lot like Windows, and that’s the point: if these users later work in an office, what they learned will still be useful.
-
-Mint is stable and well tested, and it has one of the biggest communities in the Linux world, so help is easy to find. It needs 2 gigabytes of memory, 4 recommended, and each version gets updates for about five years.
-
-**The weak point: Mint expects an internet connection to install apps and updates.** Now Davide will show you the light one.
+Now Dennis will take you inside the computer.
 
 ## Speaker 2 – Davide Miron
 

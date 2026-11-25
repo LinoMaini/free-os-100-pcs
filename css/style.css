@@ -668,3 +668,7 @@ html[data-td="1"] .td-cap [data-l="1"],html[data-td="2"] .td-cap [data-l="2"],ht
 /* one more button in the bar: links keep their width (the row scrolls if it must), and the bar tightens a little */
 .links a{flex-shrink:0}
 @media (max-width:1180px) and (min-width:821px){.nav{gap:10px;padding-left:2vw;padding-right:2vw}.links a{padding:10px 8px}}
+
+/* during the tour the screen is a slide: the hints and buttons meant for visitors step aside (no layout jump) */
+.touring .tour-hide,.touring .hero .actions{display:none}
+.touring .hero .hero-copy{transform:translateY(calc(-1 * var(--lift, 0px)));transition:transform .45s cubic-bezier(.2,.8,.2,1)}
