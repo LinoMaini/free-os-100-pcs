@@ -18,7 +18,7 @@ export const STOPS = {
   access: 'Accessibility',
   pick: 'Our pick',
   install: 'How to install it',
-  plan: 'From box to classroom',
+  plan: 'After the install',
   end: 'Questions?',
   bonus: 'Fun fact: the heaviest system',
 };
