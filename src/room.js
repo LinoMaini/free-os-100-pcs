@@ -5,6 +5,8 @@ import { DEFAULT_BROKERS } from './mq.js';
 export const STOPS = {
   world: 'The mission',
   top: 'Their first computer',
+  os: 'What an operating system is',
+  free: 'Why free and open',
   teardown: 'Inside the computer',
   challenge: 'Who we’re choosing for',
   method: 'About 100 in, 3 out',

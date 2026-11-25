@@ -32,6 +32,8 @@ import { initOffline } from './offline.js';
   const SCENES = {
     world:     { inside: 'globe', ax: 0.66, ay: 0.5, max: 0.5, may: 0.66, az: 0, el: 0, zoom: 0.72, mzoom: 0.95, bg: '#16123A' },
     top:       { ax: 0.77, ay: 0.54, max: 0.5, may: 0.8, az: -0.5, el: 0.12, zoom: 1.12, mzoom: 1.4, screen: 'hello', bg: '#FFE14D' },
+    os:        { ax: 0.3, ay: 0.52, max: 0.5, may: 0.5, az: 0.28, el: 0.12, zoom: 1.1, mzoom: 1.35, screen: 'hello', bg: '#8FD3FF' },
+    free:      { ax: 0.73, ay: 0.5, max: 0.5, may: 0.28, az: -0.3, el: 0.26, zoom: 1.18, mzoom: 1.3, screen: 'grid100', crowd: 1, bg: '#C8EE5A' },
     teardown:  { inside: 'teardown', ax: 0.5, ay: 0.52, max: 0.5, may: 0.5, az: 0.22, el: 0.08, zoom: 0.62, mzoom: 0.9, bg: '#9FF2C8' },
     challenge: { ax: 0.27, ay: 0.52, max: 0.5, may: 0.28, az: 0.42, el: 0.3, zoom: 1.2, mzoom: 1.3, screen: 'grid100', crowd: 1, bg: '#FF9ECF' },
     method:    { inside: 'funnel', ax: 0.72, ay: 0.5, max: 0.5, may: 0.28, az: -0.2, el: 0.28, zoom: 1.05, crowd: 1, bg: '#B7A3FF' },
@@ -193,7 +195,7 @@ import { initOffline } from './offline.js';
   const SLOT = Math.max(10, Number(new URLSearchParams(location.search).get('slot')) || 180) * 1000;
   // each speaker takes a run of stops in page order, so the tour scrolls straight down the page
   const PARTS = [
-    [['world', 34], ['top', 22]], // Lino Maini: the mission, up to "Their first computer"
+    [['world', 30], ['top', 18], ['os', 20], ['free', 20]], // Lino Maini: the mission, the question, what an OS is and why free and open
     [['teardown', 30], ['challenge', 26], ['method', 30], ['energy', 16], ['access', 18]], // Dennis Boschi: inside the computer, how we narrowed it down, energy and accessibility
     [['mint', 40], ['zorin', 30], ['endless', 34], ['scores', 36], ['pick', 30]], // Roberto Cacace: the three systems (live desktops on Zorin and Endless), the scores and our pick
     [['install', 60], ['plan', 24], ['bonus', 26], ['end', 20]], // Davide Miron: how to install it, the plan and the close
