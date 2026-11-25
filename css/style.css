@@ -160,6 +160,9 @@ main{position:relative;z-index:1}
 .tb-text{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .tb-prog{grid-column:1 / -1;grid-row:2;height:8px;border:2px solid var(--ink)}
 .tb-prog i{display:block;height:100%;width:0;background:var(--ink)}
+/* while the tour bar is on screen, lift scene content so the floating bar never sits on top of a card */
+html:has(.tourbar:not([hidden])) .scene,
+html:has(.tourbar:not([hidden])) .world .beat{padding-bottom:clamp(112px,14vh,160px)}
 
 @media (prefers-reduced-motion: no-preference){html{scroll-behavior:smooth}}
 html.motion-on{scroll-behavior:smooth}
