@@ -32,8 +32,8 @@ import { initOffline } from './offline.js';
   const SCENES = {
     world:     { inside: 'globe', ax: 0.66, ay: 0.5, max: 0.5, may: 0.66, az: 0, el: 0, zoom: 0.72, mzoom: 0.95, bg: '#16123A' },
     top:       { ax: 0.77, ay: 0.54, max: 0.5, may: 0.8, az: -0.5, el: 0.12, zoom: 1.12, mzoom: 1.4, screen: 'hello', bg: '#FFE14D' },
-    os:        { ax: 0.3, ay: 0.52, max: 0.5, may: 0.5, az: 0.28, el: 0.12, zoom: 1.1, mzoom: 1.35, screen: 'hello', bg: '#8FD3FF' },
-    free:      { ax: 0.73, ay: 0.5, max: 0.5, may: 0.28, az: -0.3, el: 0.26, zoom: 1.18, mzoom: 1.3, screen: 'grid100', crowd: 1, bg: '#C8EE5A' },
+    os:        { inside: 'osdesk', ax: 0.3, ay: 0.5, max: 0.5, may: 0.5, az: 0.3, el: 0.12, zoom: 1.02, mzoom: 1.3, bg: '#8FD3FF' },
+    free:      { inside: 'freegift', ax: 0.73, ay: 0.5, max: 0.5, may: 0.28, az: -0.28, el: 0.16, zoom: 1.0, mzoom: 1.25, bg: '#C8EE5A' },
     teardown:  { inside: 'teardown', ax: 0.5, ay: 0.52, max: 0.5, may: 0.5, az: 0.22, el: 0.08, zoom: 0.62, mzoom: 0.9, bg: '#9FF2C8' },
     challenge: { ax: 0.27, ay: 0.52, max: 0.5, may: 0.28, az: 0.42, el: 0.3, zoom: 1.2, mzoom: 1.3, screen: 'grid100', crowd: 1, bg: '#FF9ECF' },
     method:    { inside: 'funnel', ax: 0.72, ay: 0.5, max: 0.5, may: 0.28, az: -0.2, el: 0.28, zoom: 1.05, crowd: 1, bg: '#B7A3FF' },

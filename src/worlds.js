@@ -7,6 +7,7 @@ import { UI_W, UI_H, drawMint, drawZorin, drawEndless } from './osui.js';
 import { addAbsurdWorlds } from './worlds2.js';
 import { addGlobeWorld } from './worlds3.js';
 import { addInstallWorld } from './worlds4.js';
+import { addLinoWorlds } from './worlds5.js';
 
 const dummy = new THREE.Object3D();
 
@@ -928,5 +929,6 @@ export function buildWorlds() {
   addAbsurdWorlds(W);
   addGlobeWorld(W);
   addInstallWorld(W);
+  addLinoWorlds(W);
   return W;
 }
