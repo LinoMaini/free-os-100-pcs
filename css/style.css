@@ -77,6 +77,11 @@ main{position:relative;z-index:1}
 .steps li::before,.timeline li::before{content:counter(n);grid-row:span 2;width:44px;height:44px;display:grid;place-items:center;font:20px/1 var(--display);background:var(--bg);border:3px solid var(--ink);border-radius:50%}
 .steps b,.timeline b{font-size:18px}
 .steps span,.timeline span{font-size:15px;color:var(--soft)}
+#plan .timeline{gap:18px}
+#plan .timeline li{grid-template-columns:56px minmax(0,1fr);column-gap:18px}
+#plan .timeline li::before{width:56px;height:56px;font-size:26px}
+#plan .timeline b{font-size:26px}
+#plan .timeline span{font-size:19px}
 .finals{display:flex;flex-wrap:wrap;gap:12px}
 .finals .tag:nth-child(1){rotate:-2deg}.finals .tag:nth-child(3){rotate:2deg}
 

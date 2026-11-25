@@ -87,6 +87,11 @@ main{position:relative;z-index:1}
 .steps li::before,.timeline li::before{content:counter(n);grid-row:span 2;width:44px;height:44px;display:grid;place-items:center;font:20px/1 var(--display);background:var(--bg);border:3px solid var(--ink);border-radius:50%}
 .steps b,.timeline b{font-size:18px}
 .steps span,.timeline span{font-size:15px;color:var(--soft)}
+#plan .timeline{gap:18px}
+#plan .timeline li{grid-template-columns:56px minmax(0,1fr);column-gap:18px}
+#plan .timeline li::before{width:56px;height:56px;font-size:26px}
+#plan .timeline b{font-size:26px}
+#plan .timeline span{font-size:19px}
 .finals{display:flex;flex-wrap:wrap;gap:12px}
 .finals .tag:nth-child(1){rotate:-2deg}.finals .tag:nth-child(3){rotate:2deg}
 
@@ -895,9 +900,9 @@ html[data-td="1"] .td-cap [data-l="1"],html[data-td="2"] .td-cap [data-l="2"],ht
       <p class="count">Fun fact</p>
       <h2><span class="chip c-zos">IBM z/OS</span></h2>
       <p class="tagline">The heaviest system to run</p>
-      <p>z/OS is IBM’s operating system for its Z mainframes, the machines built for big business transactions. On top of the machine, IBM charges for the system every month.</p>
+      <p>z/OS runs IBM’s Z mainframes, built for big business. IBM charges for it every month.</p>
       <dl class="facts"><div><dt>Weight</dt><dd>2,558 kg</dd><small>IBM z17, 4 frames</small></div><div><dt>Power</dt><dd>31 kW</dd><small>at most</small></div><div><dt>Memory</dt><dd>64 TB</dd><small>at most</small></div></dl>
-      <p>Prices aren’t public: for the previous model, estimates start around $500,000 for the hardware alone. Our 100 PCs run on €0 of software.</p>
+      <p>The hardware alone is estimated around $500,000. Our 100 PCs run on €0 of software.</p>
     </div>
   </article>
 
