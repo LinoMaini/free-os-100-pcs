@@ -12,7 +12,7 @@
 <link rel="preload" href="fonts/archivo-black-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/archivo-latin-500-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/archivo-latin-700-normal.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="css/style.css?v=df2920ba4a">
+<link rel="stylesheet" href="css/style.css?v=e389cff36b">
 <script>document.documentElement.classList.add('js')</script>
 </head>
 <body>
@@ -39,7 +39,7 @@
 <div id="modeToast" role="status" aria-live="polite"></div>
 
 <main>
-  <section id="world" class="scene world" data-scene="world" data-stop="The mission" data-nav="top" data-hold="27 21 27 12">
+  <section id="world" class="scene world" data-scene="world" data-stop="The mission" data-nav="top" data-hold="22 20 17 12">
     <div class="beat"><div class="card"><h2>100 donated PCs</h2><p>Asus is giving 100 desktop computers to an NGO.</p></div></div>
     <div class="beat"><div class="card"><h2>2 billion people are still offline</h2><p>In low-income countries, only 32% of people use the internet.</p></div></div>
     <div class="beat"><div class="card"><h2>Where they’re going, <span class="nowrap">Wi-Fi</span> and power come and go</h2><p>Many of the people who will use them have never had a computer.</p></div></div>
@@ -257,34 +257,42 @@
 </main>
 
 <footer class="foot">
-  <div>
-    <h3>Sources</h3>
-    <ul>
-      <li><a href="https://betanews.com/article/linux-mint-22-3-is-built-for-users-who-value-stability-over-surprises">Linux Mint 22.3 system requirements (BetaNews)</a></li>
-      <li><a href="https://help.zorin.com/docs/getting-started/getting-zorin-os-lite/">Getting Zorin OS Lite (Zorin)</a></li>
-      <li><a href="https://www.justgeek.fr/zorin-os-lite-guide-installation-149273/">Zorin OS 18 is the last Lite series (JustGeek)</a></li>
-      <li><a href="https://ostechnix.com/zorin-os-18-1-released/">Zorin OS 18.1 Lite uses Xfce 4.20 (OSTechNix)</a></li>
-      <li><a href="https://invgate.com/itdb/endless-os-6">Endless OS 6 requirements (InvGate)</a></li>
-      <li><a href="https://access.endlessstudios.com/blog/endless-os-a-conversation-about-whats-changing-and-why-it-matters">The work on Endless OS 7 (Endless Access)</a></li>
-      <li><a href="https://support.endlessos.org/en/endless-os/usb-updates">Updating Endless OS by USB (Endless)</a></li>
-      <li><a href="https://support.endlessos.org/en/deployment/reformatter-usb/update-image">Reformatter USB (Endless)</a></li>
-      <li><a href="https://support.endlessos.org/deployment/reformatter-usb">One reformatter USB, many computers (Endless)</a></li>
-      <li><a href="https://support.endlessos.org/en/deployment/reformatter-usb/windows">Create Reformatter USB on Windows (Endless)</a></li>
-      <li><a href="https://support.endlessos.org/en/installation/windows-installer/endless-usb">USB stick size for Endless OS Full (Endless)</a></li>
-      <li><a href="https://www.asus.com/us/support/faq/1008829/">Entering the BIOS with F2 (Asus)</a></li>
-      <li><a href="https://www.asus.com/us/support/faq/1013017/">Boot Menu with F8 on desktops (Asus)</a></li>
-      <li><a href="https://www.linuxpromagazine.com/Online/News/Endless-OS-a-Distribution-Without-Internet">Endless OS without internet (Linux Pro Magazine)</a></li>
-      <li><a href="https://www.itu.int/itu-d/reports/statistics/2026/10/13/ff26-foreword/">People online and offline, Facts and Figures 2026 (ITU)</a></li>
-      <li><a href="https://www.ibm.com/downloads/documents/us-en/1227a45bcbb087b3">IBM z17 data sheet (IBM)</a></li>
-      <li><a href="https://www.ibm.com/docs/en/module_1721331612225/pdf/GC28-7049-01.pdf">IBM z17 weight and power, planning manual (IBM)</a></li>
-      <li><a href="https://ibm.com/downloads/cas/GX2ROORV">Monthly license charges for z/OS (IBM)</a></li>
-      <li><a href="https://planetmainframe.com/?p=15736">Mainframe cost estimates (Planet Mainframe)</a></li>
-    </ul>
-  </div>
-  <div>
-    <h3>Notes</h3>
-    <p>Scores are our own ratings. The 3D computer and its screens are simplified drawings, not screenshots. Made for a school presentation, November 2026.</p>
-  </div>
+  <details class="term" id="sources">
+    <summary class="term-bar">
+      <span class="term-dots" aria-hidden="true"><i></i><i></i><i></i></span>
+      <span class="term-hello"><span class="vh">Sources and notes. </span><span class="term-ps" aria-hidden="true">team@free-os:~$</span> Thanks for watching! Lino, Davide, Dennis &amp; Roberto</span>
+      <svg class="term-chev" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 6l5 5 5-5"/></svg>
+    </summary>
+    <div class="term-body">
+      <p class="term-line"><span class="term-ps">team@free-os:~$</span> <span class="term-typed">cat sources.txt</span></p>
+      <h2 class="vh">Sources</h2>
+      <ul class="term-list">
+        <li><a href="https://betanews.com/article/linux-mint-22-3-is-built-for-users-who-value-stability-over-surprises">Linux Mint 22.3 system requirements (BetaNews)</a></li>
+        <li><a href="https://help.zorin.com/docs/getting-started/getting-zorin-os-lite/">Getting Zorin OS Lite (Zorin)</a></li>
+        <li><a href="https://www.justgeek.fr/zorin-os-lite-guide-installation-149273/">Zorin OS 18 is the last Lite series (JustGeek)</a></li>
+        <li><a href="https://ostechnix.com/zorin-os-18-1-released/">Zorin OS 18.1 Lite uses Xfce 4.20 (OSTechNix)</a></li>
+        <li><a href="https://invgate.com/itdb/endless-os-6">Endless OS 6 requirements (InvGate)</a></li>
+        <li><a href="https://access.endlessstudios.com/blog/endless-os-a-conversation-about-whats-changing-and-why-it-matters">The work on Endless OS 7 (Endless Access)</a></li>
+        <li><a href="https://support.endlessos.org/en/endless-os/usb-updates">Updating Endless OS by USB (Endless)</a></li>
+        <li><a href="https://support.endlessos.org/en/deployment/reformatter-usb/update-image">Reformatter USB (Endless)</a></li>
+        <li><a href="https://support.endlessos.org/deployment/reformatter-usb">One reformatter USB, many computers (Endless)</a></li>
+        <li><a href="https://support.endlessos.org/en/deployment/reformatter-usb/windows">Create Reformatter USB on Windows (Endless)</a></li>
+        <li><a href="https://support.endlessos.org/en/installation/windows-installer/endless-usb">USB stick size for Endless OS Full (Endless)</a></li>
+        <li><a href="https://www.asus.com/us/support/faq/1008829/">Entering the BIOS with F2 (Asus)</a></li>
+        <li><a href="https://www.asus.com/us/support/faq/1013017/">Boot Menu with F8 on desktops (Asus)</a></li>
+        <li><a href="https://www.linuxpromagazine.com/Online/News/Endless-OS-a-Distribution-Without-Internet">Endless OS without internet (Linux Pro Magazine)</a></li>
+        <li><a href="https://www.itu.int/itu-d/reports/statistics/2026/10/13/ff26-foreword/">People online and offline, Facts and Figures 2026 (ITU)</a></li>
+        <li><a href="https://www.ibm.com/downloads/documents/us-en/1227a45bcbb087b3">IBM z17 data sheet (IBM)</a></li>
+        <li><a href="https://www.ibm.com/docs/en/module_1721331612225/pdf/GC28-7049-01.pdf">IBM z17 weight and power, planning manual (IBM)</a></li>
+        <li><a href="https://ibm.com/downloads/cas/GX2ROORV">Monthly license charges for z/OS (IBM)</a></li>
+        <li><a href="https://planetmainframe.com/?p=15736">Mainframe cost estimates (Planet Mainframe)</a></li>
+      </ul>
+      <p class="term-line"><span class="term-ps">team@free-os:~$</span> cat notes.txt</p>
+      <h2 class="vh">Notes</h2>
+      <p class="term-out">Scores are our own ratings. The 3D computer and its screens are simplified drawings, not screenshots. Made for a school presentation, November 2026.</p>
+      <p class="term-line"><span class="term-ps">team@free-os:~$</span> <i class="term-cursor"></i></p>
+    </div>
+  </details>
 </footer>
 
 <div class="tourbar" id="tourbar" hidden>
@@ -294,6 +302,6 @@
   <button type="button" class="btn small" id="tbStop">Stop</button>
 </div>
 
-<script src="js/app.js?v=665342a501" defer></script>
+<script src="js/app.js?v=d2eb888fb2" defer></script>
 </body>
 </html>

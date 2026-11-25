@@ -2,6 +2,7 @@ import { createStage } from './scene.js';
 import { initCrazy } from './crazy.js';
 import { initFleet } from './fleet.js';
 import { initOffline } from './offline.js';
+import { initTerm } from './term.js';
 
 {
   // Many school PCs have Windows animations switched off, which browsers report as "reduce motion".
@@ -77,6 +78,7 @@ import { initOffline } from './offline.js';
   initCrazy(stage, { reduceMotion });
   initFleet({ reduceMotion });
   initOffline();
+  initTerm({ reduceMotion });
 
   // the presentation starts after the opening world: the title pops and the stickers slap on when the hero first shows
   const hero = document.getElementById('top');
@@ -192,14 +194,14 @@ import { initOffline } from './offline.js';
   // goes to the next speaker's first stop. The only clock is hidden in plain sight: the little USB stick in the top bar
   // walks across in three minutes, the line behind it turns red in the last 30 seconds and the stick shakes in the last 10.
   // ?slot=60 shortens every part (seconds), for a quick rehearsal
-  // each speaker's time in seconds: Lino's opening is quicker (2:20), the others have three minutes.
+  // each speaker's time in seconds: Lino's opening is quicker (2:40), the others have three minutes.
   // ?slot=N rehearses faster: N is what a three-minute part becomes, the others scale with it.
-  const PART_SECS = [140, 180, 180, 180];
+  const PART_SECS = [160, 180, 180, 180];
   const slotQ = Number(new URLSearchParams(location.search).get('slot'));
   const partMs = (k) => Math.max(10, (PART_SECS[k] ?? 180) * (slotQ > 0 ? slotQ / 180 : 1)) * 1000;
   // each speaker takes a run of stops in page order, so the tour scrolls straight down the page
   const PARTS = [
-    [['world', 41], ['top', 21], ['os', 34], ['free', 44]], // Lino Maini: the mission, the question, what an OS is and why free and open (seconds of his 2:20, from his script)
+    [['world', 43], ['top', 23], ['os', 43], ['free', 51]], // Lino Maini: the mission, the question, what an OS is and why free and open (seconds of his 2:40, from his script)
     [['teardown', 30], ['challenge', 26], ['method', 30], ['energy', 16], ['access', 18]], // Dennis Boschi: inside the computer, how we narrowed it down, energy and accessibility
     [['mint', 40], ['zorin', 30], ['endless', 34], ['scores', 36], ['pick', 30]], // Roberto Cacace: the three systems (live desktops on Zorin and Endless), the scores and our pick
     [['install', 60], ['plan', 24], ['bonus', 26], ['end', 20]], // Davide Miron: how to install it, the plan and the close
