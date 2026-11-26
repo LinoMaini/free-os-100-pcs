@@ -2,7 +2,7 @@
 
 ## Come usarlo
 
-Lino ha 2:40, Dennis e Roberto 3 minuti, Davide 1:30: all'inizio premete **Play the tour** e il sito divide il tempo così, scorrendo la pagina dall'alto in basso.
+Lino ha 2:00, Dennis e Roberto 3 minuti, Davide 1:30: all'inizio premete **Play the tour** e il sito divide il tempo così, scorrendo la pagina dall'alto in basso.
 
 | Chi | Tappe del tour |
 | --- | --- |
@@ -49,38 +49,30 @@ Pronuncia delle parole più difficili:
 
 ## Speaker 1 – Lino Maini
 
-*The mission, what an operating system is, why free and open · 2 minutes 40 · simple English*
+*The mission, what an operating system is, why free and open · 2 minutes, spoken slowly · simple English*
 
-Tempi del tour (la tua chiavetta dura 2:40): The mission 0:00–0:21 (quattro cartelli veloci, il tour li cambia da solo), Their first computer 0:21–0:38, What an operating system is 0:38–1:40, Why free and open 1:40–2:40. Linea rossa a 2:10, la chiavetta trema a 2:30; a 2:40 il tour passa da solo a Dennis. Versione Word con traduzione e pronuncia: `docs/Discorso-Lino.docx`.
+Tempi del tour (la tua chiavetta dura 2:00): The mission 0:00–0:34 (quattro cartelli, il tour li fa scorrere da solo), Their first computer 0:34–0:48, What an operating system is 0:48–1:20, Why free and open 1:20–2:00. Linea rossa a 1:30, la chiavetta trema a 1:50; a 2:00 il tour passa da solo a Dennis (se finisci prima, premi →). Versione Word con traduzione e pronuncia: `docs/Discorso-Lino.docx`.
 
 **[The mission]**
 
-*(Cartello 1 – 100 donated PCs)* Good morning, everyone. Asus wants to donate one hundred computers to an NGO, a charity.
-*(Cartello 2 – 2 billion people are still offline)* But two billion people are still offline, without internet,
-*(Cartello 3 – Where they’re going, Wi-Fi and power come and go)* and where these computers are going, Wi-Fi and electricity often stop working.
+*(Cartello 1 – 100 donated PCs)* Good morning, I’m Lino. Asus wants to donate one hundred PCs.
+*(Cartello 2 – 2 billion people are still offline)* But two billion people are still offline,
+*(Cartello 3 – Where they’re going, Wi-Fi and power come and go)* and where these PCs are going, Wi-Fi and power come and go.
 *(Cartello 4 – Our job: pick the free system that works anyway)* **So we need a free system that works anyway.**
 
 **[Their first computer]**
 
-For many people, this will be their first computer. I’m Lino, and with Dennis, Roberto and Davide we’ll answer one question: **which free operating system should they use?**
+For many people, this will be their first computer. **Which free operating system should they use?**
 
 **[What an operating system is]**
 
-To answer, let’s start with the basics: what is an operating system? A computer on its own is just metal and plastic. The operating system is the most important **software**, and software means the programs inside the computer.
-
-It controls the **hardware**, the parts you can touch, like the keyboard and the screen, and it gives us the desktop and the apps. **Without it, a computer can’t do anything.**
-
-Windows and macOS are the most famous, but they cost money and their **code**, the instructions that make them work, is secret. Our three systems are all built on **Linux**, the heart of the system, and they do the same job for free.
+What is an operating system? On its own, a computer is just metal and plastic. The operating system is the **software** that wakes it up: software means programs. It controls the **hardware**, the parts you can touch.
 
 **[Why free and open]**
 
-But why free and open? **Free** means there is no **licence fee**, the price you pay to use a program. Not for one computer, and not for one hundred. So the NGO can spend its money on other things.
+Our three systems all have the same heart: **Linux**. And they are free and open. **Free** means no **licence fee**: nothing to pay, even for one hundred PCs. **Open** means everybody can see the **code**, the instructions inside.
 
-**Open** means everybody can see the code, change it and share it, and people everywhere help to fix it.
-
-That’s why the screen says zero euros: **zero euros to put the same system on every PC.** And a teacher can update them all with one USB stick, even without internet.
-
-Now Dennis will show you what is inside a computer.
+**Zero euros for every PC.** Over to you, Dennis.
 
 ## Speaker 2 – Dennis Boschi
 

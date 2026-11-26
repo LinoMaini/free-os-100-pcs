@@ -125,14 +125,14 @@ import { initTerm } from './term.js';
   // goes to the next speaker's first stop. The only clock is hidden in plain sight: the little USB stick in the top bar
   // walks across during each part, the line behind it turns red in the last 30 seconds and the stick shakes in the last 10.
   // ?slot=60 makes a three-minute part last 60 seconds, for a quick rehearsal
-  // Each speaker's time: Lino 2:40, Dennis and Roberto 3:00, Davide's short close 1:30.
+  // Each speaker's time: Lino 2:00, Dennis and Roberto 3:00, Davide's short close 1:30.
   // ?slot=N rehearses faster: N is what a three-minute part becomes, the others scale with it.
-  const PART_SECS = [160, 180, 180, 90];
+  const PART_SECS = [120, 180, 180, 90];
   const slotQ = Number(new URLSearchParams(location.search).get('slot'));
   const partMs = (k) => Math.max(10, (PART_SECS[k] ?? 180) * (slotQ > 0 ? slotQ / 180 : 1)) * 1000;
   // each speaker takes a run of stops in page order, so the tour scrolls straight down the page
   const PARTS = [
-    [['world', 20], ['top', 15], ['os', 60], ['free', 60]], // Lino Maini: the mission, the question, what an OS is and why free and open (seconds of his 2:40, from his script)
+    [['world', 34], ['top', 14], ['os', 32], ['free', 40]], // Lino Maini: the mission, the question, what an OS is and why free and open (seconds of his 2:00, from his script read slowly)
     [['teardown', 30], ['challenge', 26], ['method', 30], ['energy', 16], ['access', 18]], // Dennis Boschi: inside the computer, how we narrowed it down, energy and accessibility
     [['mint', 40], ['zorin', 30], ['endless', 34], ['pick', 30]], // Roberto Cacace: the three systems (live desktops on Zorin and Endless), our pick
     [['install', 55], ['bonus', 20], ['end', 15]], // Davide Miron: two install cards, IBM fun fact and questions
