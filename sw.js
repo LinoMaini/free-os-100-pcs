@@ -1,7 +1,7 @@
 // Keeps a copy of the whole site on the device, so it opens and works without internet.
 // build.mjs fills in the file list and the version; a new version replaces the old copy.
-const CACHE = 'wrg-29d515e4a8';
-const ASSETS = ["./","css/style.css?v=f96b609434","js/app.js?v=9396789fc2","fonts/archivo-black-latin-400-normal.woff2","fonts/archivo-latin-400-normal.woff2","fonts/archivo-latin-500-normal.woff2","fonts/archivo-latin-700-normal.woff2","manifest.webmanifest","icons/apple-touch-icon.png","icons/icon-192.png","icons/icon-512.png","icons/maskable-512.png","join/","js/join.js?v=14464f09a5"];
+const CACHE = 'wrg-fb391f4e56';
+const ASSETS = ["./","css/style.css?v=f96b609434","js/app.js?v=9a178a9e91","fonts/archivo-black-latin-400-normal.woff2","fonts/archivo-latin-400-normal.woff2","fonts/archivo-latin-500-normal.woff2","fonts/archivo-latin-700-normal.woff2","manifest.webmanifest","icons/apple-touch-icon.png","icons/icon-192.png","icons/icon-512.png","icons/maskable-512.png","join/","js/join.js?v=14464f09a5"];
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(ASSETS.map((u) => new Request(u, { cache: 'reload' })))).then(() => self.skipWaiting()));

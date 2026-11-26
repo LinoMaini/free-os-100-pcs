@@ -460,6 +460,7 @@ export function addInstallWorld(W) {
           elapsed: 0, position: hero.position.clone(), rotation: hero.rotation.z,
           scale: hero.scale.clone(), view: [...view],
           stations: [deskA.visible, deskB.visible, gridRoot.visible],
+          fleet: step === 2 || gridRoot.visible,
         };
         activeStep = step;
         stepTime = 0;
@@ -479,6 +480,8 @@ export function addInstallWorld(W) {
       // Follow the stick between stations, then hold the new slide's framing.
       const targetView = [F.b, F.d, F.e][step];
       for (let i = 0; i < view.length; i++) view[i] = flight ? lerp(flight.view[i], targetView[i], flightProgress) : targetView[i];
+      // The fleet's high landing point needs room while the framing changes scale.
+      if (flight?.fleet) view[2] *= 1 - 0.45 * Math.sin(Math.PI * flightProgress);
       const [fx, fy, fs] = view;
       cam.scale.setScalar(fs);
       cam.position.set(-fx * fs, -fy * fs, 0);
@@ -571,7 +574,7 @@ export function addInstallWorld(W) {
       hero.scale.set(HS / squash, HS * squash, HS);
       if (flight) {
         flightTarget.copy(hv);
-        arc(flight.position, flightTarget, flightProgress, step === 2 ? 1.6 : 1.2, hv);
+        arc(flight.position, flightTarget, flightProgress, flight.fleet ? 0.25 : 1.2, hv);
         const turn = Math.atan2(Math.sin(rotZ - flight.rotation), Math.cos(rotZ - flight.rotation));
         rotZ = flight.rotation + turn * flightProgress;
         hero.scale.lerpVectors(flight.scale, hero.scale, flightProgress);
