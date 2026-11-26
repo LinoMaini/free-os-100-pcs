@@ -20,7 +20,7 @@ This repository holds our school presentation's website: a one-page, 3D, sticker
 ## What it does
 
 - The site opens on a 3D globe. The 100 PCs leave Taipei in one cardboard box that takes off like a rocket and bursts, then fly to schools in Africa, where storms knock out the power and the Wi-Fi comes and goes. The camera dives through the clouds into a classroom, and the presentation starts.
-- **How to install it:** a 3D tutorial in five steps, led by a USB stick with eyes: download Endless OS, make a reformatter USB, boot an Asus PC from it (F2, then F8), let it install, and ten sticks hop across the 100 PCs until the board reads 100/100.
+- **How to install it:** two cards cover preparing the USB and installing on 100 PCs. A USB stick with eyes leads the 3D animation from download to installation, then ten sticks hop across the PCs until the board reads 100/100. **After the install** covers training local helpers and sharing updates by USB.
 - **Inside the computer:** the case opens, the parts fly apart and the camera zooms through the chip into the code and down to a single bit. At the end, a bonus on the heaviest system of all (IBM z/OS on a mainframe).
 - A toon-shaded 3D computer (three.js), surrounded by the other 99 donated PCs. Scroll and the camera dives through its screen: inside, every section is a small 3D world in its own colour, from the three systems checked with a magnifier to the score towers and the podium.
 - Inside the computer, each finalist's desktop (Linux Mint, Zorin OS Lite, Endless OS) is redrawn layer by layer: as you scroll through its section, windows and menus open, the pointer clicks, and the layers come apart in depth. The icons are generic drawings, not the official logos.
