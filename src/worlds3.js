@@ -208,25 +208,170 @@ export function addGlobeWorld(W) {
   for (const m of [classBody, classLine, classScr]) m.frustumCulled = false;
   for (let i = 0; i < CLASS; i++) classScr.setColorAt(i, scrCols[i % scrCols.length]);
   {
-    school.position.copy(homeN).multiplyScalar(R);
+    // the village floats just above the map, a little island of savanna, so the pop-up tilt never sinks its back into the globe
+    school.position.copy(homeN).multiplyScalar(R + 0.15);
     const S = new THREE.Group();
     S.add(classLine, classBody, classScr);
-    S.add(part(new THREE.CylinderGeometry(0.16, 0.16, 0.012, 40).translate(0, 0.006, 0), toon('#2FBF71'), 0.006));
-    const house = part(rbox(0.13, 0.07, 0.08, 0.008).translate(0, 0.047, 0), toon(PAL.white), 0.006);
-    const roofShape = new THREE.Shape([new THREE.Vector2(-0.078, 0), new THREE.Vector2(0.078, 0), new THREE.Vector2(0, 0.05)]);
-    const roof = part(new THREE.ExtrudeGeometry(roofShape, { depth: 0.09, bevelEnabled: false }).translate(0, 0.082, -0.045), toon(PAL.coral), 0.006);
-    const door = new THREE.Mesh(new THREE.PlaneGeometry(0.022, 0.04), new THREE.MeshBasicMaterial({ color: '#3A2A1A' }));
-    door.position.set(0, 0.032, 0.0405);
-    const panel = part(rbox(0.05, 0.004, 0.03, 0.001).translate(0.025, 0.106, 0.015), toon('#3D7BFF'), 0.004);
-    panel.rotation.z = -0.55;
-    const pole = part(rbox(0.004, 0.11, 0.004, 0.001).translate(-0.1, 0.055, 0.05), toon(PAL.ink), 0.002);
-    const flag = new THREE.Mesh(new THREE.PlaneGeometry(0.04, 0.025), new THREE.MeshBasicMaterial({ color: PAL.yellow, side: THREE.DoubleSide }));
-    flag.position.set(-0.078, 0.098, 0.05);
-    S.add(house, roof, door, panel, pole, flag);
-    [[0.11, -0.05], [0.095, 0.07], [-0.12, -0.06]].forEach(([x, z], i) => {
-      S.add(part(new THREE.CylinderGeometry(0.006, 0.006, 0.03, 8).translate(x, 0.015, z), toon('#8B5A2B'), 0.003));
-      S.add(part(new THREE.SphereGeometry(0.026 + i * 0.004, 14, 10).translate(x, 0.045, z), toon('#2E9E55'), 0.004));
+    // a little African village on a slice of savanna: the school, round huts with thatched roofs,
+    // an acacia and a baobab, a water tank, a mast for the patchy Wi-Fi, and the PCs on a mat outside
+    const ground = part(new THREE.CylinderGeometry(0.185, 0.172, 0.036, 56).translate(0, -0.018, 0), [toon('#B4652F'), toon('#D8B062'), toon('#7A3E1A')], 0.006);
+    S.add(ground);
+    // its underside: a cone of earth and rock, like a floating island
+    S.add(part(new THREE.CylinderGeometry(0.17, 0.03, 0.12, 40).translate(0, -0.096, 0), toon('#8A4B22'), 0.006));
+    [[0.09, -0.07, 0.05], [-0.1, -0.06, -0.03], [0.02, -0.1, 0.07], [-0.04, -0.12, -0.05]].forEach(([x, y, z], i) => S.add(part(new THREE.DodecahedronGeometry(0.018 - i * 0.002).translate(x, y, z), toon('#6E3A1A'), 0.004)));
+    const flat = (r, x, z, col, sx = 1, sz = 1, y = 0.0006) => {
+      const m = new THREE.Mesh(new THREE.CircleGeometry(r, 28), toon(col));
+      m.rotation.x = -Math.PI / 2;
+      m.scale.set(sx, sz, 1);
+      m.position.set(x, y, z);
+      S.add(m);
+      return m;
+    };
+    flat(0.05, -0.1, -0.1, '#B9BE58', 1.3, 0.8);
+    flat(0.045, 0.12, 0.02, '#B9BE58', 1, 1.4);
+    flat(0.035, -0.13, 0.08, '#C3C463', 1.2, 0.9);
+    // the dirt yard in front of the school, and the path out of the village
+    flat(0.07, 0, 0.03, '#E9C98A', 1.6, 0.75, 0.0009);
+    const path = new THREE.Mesh(new THREE.PlaneGeometry(0.03, 0.09), toon('#E9C98A'));
+    path.rotation.x = -Math.PI / 2;
+    path.position.set(0.05, 0.0009, 0.13);
+    path.rotation.z = -0.35;
+    S.add(path);
+    // the mat the PCs sit on
+    const mat = part(rbox(0.235, 0.002, 0.08, 0.001).translate(0, 0.0012, 0.095), toon('#E2B866'), 0.003);
+    S.add(mat);
+
+    // the school: cream walls with a painted blue band, windows, a tin roof with two solar panels
+    const BW = 0.15, BD = 0.06, WH = 0.06, BZ = -0.05, TH = 0.62;
+    S.add(part(rbox(BW, WH, BD, 0.004).translate(0, WH / 2, BZ), toon('#F4E7C9'), 0.005));
+    S.add(part(rbox(BW + 0.002, 0.015, BD + 0.002, 0.002).translate(0, 0.0075, BZ), toon('#3D7BFF'), 0.004));
+    const ridge = WH + (BD / 2) * Math.tan(TH);
+    const gable = new THREE.Shape([new THREE.Vector2(-BD / 2, 0), new THREE.Vector2(BD / 2, 0), new THREE.Vector2(0, ridge - WH)]);
+    [-1, 1].forEach((sd) => {
+      const gm = part(new THREE.ExtrudeGeometry(gable, { depth: 0.003, bevelEnabled: false }), toon('#F4E7C9'), 0.004);
+      gm.rotation.y = Math.PI / 2;
+      gm.position.set(sd * (BW / 2) - 0.0015, WH, BZ);
+      S.add(gm);
     });
+    const slope = (BD / 2 + 0.006) / Math.cos(TH);
+    [-1, 1].forEach((sd) => {
+      const rf = new THREE.Group();
+      rf.add(part(rbox(BW + 0.016, 0.004, slope, 0.001), toon('#B8C0C9'), 0.004));
+      for (let k = 0; k < 9; k++) {
+        const rib = new THREE.Mesh(rbox(0.0018, 0.0012, slope - 0.002, 0.0005), toon('#8E98A3'));
+        rib.position.set(-0.08 + k * 0.02, 0.0026, 0);
+        rf.add(rib);
+      }
+      if (sd > 0) [-0.04, 0.005].forEach((px) => {
+        const sol = part(rbox(0.036, 0.003, slope * 0.62, 0.001), toon('#1F3F8F'), 0.003);
+        sol.position.set(px, 0.004, -0.002);
+        rf.add(sol);
+      });
+      rf.rotation.x = sd * TH;
+      rf.position.set(0, (ridge + WH) / 2 + 0.002, BZ + sd * (BD / 4 + 0.004));
+      S.add(rf);
+    });
+    const front = BZ + BD / 2 + 0.0012;
+    [-0.056, -0.03, 0.03, 0.056].forEach((wx) => {
+      S.add(part(rbox(0.017, 0.017, 0.002, 0.001).translate(wx, 0.036, front), toon('#24476B'), 0.003));
+    });
+    const door = new THREE.Mesh(new THREE.PlaneGeometry(0.019, 0.035), new THREE.MeshBasicMaterial({ color: '#5A3A22' }));
+    door.position.set(0, 0.0175, front + 0.0006);
+    S.add(door);
+    S.add(part(rbox(0.04, 0.009, 0.002, 0.001).translate(0, 0.05, front), toon('#FFE14D'), 0.003));
+
+    // round huts with thatched roofs
+    const hut = (x, z, sc, ry) => {
+      const h = new THREE.Group();
+      h.add(part(new THREE.CylinderGeometry(0.021, 0.023, 0.03, 22).translate(0, 0.015, 0), toon('#C46A35'), 0.004));
+      h.add(part(new THREE.ConeGeometry(0.034, 0.034, 22).translate(0, 0.047, 0), toon('#D9A84B'), 0.004));
+      h.add(part(new THREE.ConeGeometry(0.012, 0.012, 12).translate(0, 0.061, 0), toon('#B8862E'), 0.003));
+      const hd = new THREE.Mesh(new THREE.PlaneGeometry(0.009, 0.017), new THREE.MeshBasicMaterial({ color: '#3A2416' }));
+      hd.position.set(0, 0.0085, 0.0226);
+      h.add(hd);
+      h.position.set(x, 0, z);
+      h.scale.setScalar(sc);
+      h.rotation.y = ry;
+      S.add(h);
+    };
+    hut(-0.148, -0.035, 1, 0.5);
+    hut(-0.128, -0.11, 0.85, 0.3);
+    hut(0.152, 0.045, 0.9, -0.8);
+
+    // trees: two flat-topped acacias and a baobab
+    const acacia = (x, z, sc, lean) => {
+      const tr = new THREE.Group();
+      const trunk = part(new THREE.CylinderGeometry(0.0028, 0.0045, 0.07, 7).translate(0, 0.035, 0), toon('#5B3A22'), 0.002);
+      trunk.rotation.z = lean;
+      tr.add(trunk);
+      [[-0.022, 0.07, 0.3], [0.02, 0.064, -0.35]].forEach(([bx, by, rz]) => {
+        const br = part(new THREE.CylinderGeometry(0.0017, 0.0025, 0.03, 6).translate(0, 0.015, 0), toon('#5B3A22'), 0.002);
+        br.position.set(bx * 0.35 - lean * 0.06, by - 0.022, 0);
+        br.rotation.z = rz;
+        tr.add(br);
+      });
+      const can = part(new THREE.SphereGeometry(0.05, 18, 10), toon('#6E8F2F'), 0.004);
+      can.scale.set(1, 0.24, 0.78);
+      can.position.set(-lean * 0.07, 0.078, 0);
+      tr.add(can);
+      const can2 = part(new THREE.SphereGeometry(0.03, 14, 8), toon('#7FA238'), 0.003);
+      can2.scale.set(1, 0.3, 0.8);
+      can2.position.set(0.028 - lean * 0.07, 0.07, 0.008);
+      tr.add(can2);
+      tr.position.set(x, 0, z);
+      tr.scale.setScalar(sc);
+      S.add(tr);
+    };
+    acacia(-0.075, -0.15, 1.25, 0.12);
+    acacia(-0.163, 0.075, 0.9, -0.1);
+    const baobab = new THREE.Group();
+    baobab.add(part(new THREE.CylinderGeometry(0.011, 0.019, 0.058, 14).translate(0, 0.029, 0), toon('#A6876B'), 0.004));
+    [0, 1.3, 2.5, 3.8, 5.0].forEach((ang, k) => {
+      const br = part(new THREE.CylinderGeometry(0.0022, 0.0045, 0.024, 6).translate(0, 0.012, 0), toon('#A6876B'), 0.002);
+      br.position.set(Math.cos(ang) * 0.006, 0.055, Math.sin(ang) * 0.006);
+      br.rotation.set(Math.sin(ang) * 0.7, 0, -Math.cos(ang) * 0.7);
+      baobab.add(br);
+      const leaf = part(new THREE.SphereGeometry(0.009 + (k % 2) * 0.003, 10, 8), toon('#7C9A3D'), 0.002);
+      leaf.position.set(Math.cos(ang) * 0.02, 0.074, Math.sin(ang) * 0.02);
+      baobab.add(leaf);
+    });
+    baobab.position.set(0.155, 0, -0.1);
+    baobab.scale.setScalar(1.15);
+    S.add(baobab);
+
+    // a water tank on its stand, and the mast whose light blinks with the patchy signal
+    const tank = new THREE.Group();
+    [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(([lx, lz]) => tank.add(part(rbox(0.0025, 0.026, 0.0025, 0.0008).translate(lx * 0.009, 0.013, lz * 0.009), toon('#6B6B6B'), 0.0015)));
+    tank.add(part(new THREE.CylinderGeometry(0.015, 0.015, 0.024, 18).translate(0, 0.038, 0), toon('#2F6B4F'), 0.003));
+    tank.position.set(0.104, 0, -0.004);
+    S.add(tank);
+    const mast = new THREE.Group();
+    mast.add(part(new THREE.CylinderGeometry(0.0016, 0.0022, 0.13, 6).translate(0, 0.065, 0), toon('#9AA1A9'), 0.0015));
+    mast.add(part(rbox(0.012, 0.016, 0.004, 0.001).translate(0.004, 0.11, 0.002), toon('#E8E8E8'), 0.002));
+    const beacon = new THREE.Mesh(new THREE.SphereGeometry(0.0045, 10, 8), new THREE.MeshBasicMaterial({ color: '#FF5F57', toneMapped: false }));
+    beacon.position.set(0, 0.133, 0);
+    mast.add(beacon);
+    mast.position.set(-0.035, 0, -0.118);
+    S.add(mast);
+
+    // the flag pole by the school, little grass tufts and stones around the edge
+    const pole = part(rbox(0.003, 0.1, 0.003, 0.001).translate(-0.094, 0.05, 0.016), toon('#6B6B6B'), 0.0015);
+    const flag = new THREE.Mesh(new THREE.PlaneGeometry(0.036, 0.022), new THREE.MeshBasicMaterial({ color: PAL.yellow, side: THREE.DoubleSide }));
+    flag.position.set(-0.075, 0.088, 0.016);
+    S.add(pole, flag);
+    const tufts = new THREE.InstancedMesh(new THREE.ConeGeometry(0.0045, 0.014, 5).translate(0, 0.007, 0), toon('#6E9B35'), 34);
+    for (let i = 0; i < 34; i++) {
+      const a = i * 2.39996, r = 0.12 + ((i * 37) % 11) / 11 * 0.055;
+      dummy.position.set(Math.cos(a) * r, 0, Math.sin(a) * r);
+      if (Math.abs(dummy.position.x) < 0.13 && dummy.position.z > 0.05 && dummy.position.z < 0.14) dummy.position.z += 0.05;
+      dummy.rotation.set(0, a, 0);
+      dummy.scale.setScalar(0.8 + ((i * 13) % 7) / 10);
+      dummy.updateMatrix();
+      tufts.setMatrixAt(i, dummy.matrix);
+    }
+    S.add(tufts);
+    [[-0.07, 0.165], [0.12, 0.12], [-0.17, -0.02]].forEach(([x, z], i) => S.add(part(new THREE.SphereGeometry(0.006 + i * 0.002, 10, 8).translate(x, 0.003, z), toon('#9C9488'), 0.002)));
+    school.userData.beacon = beacon;
     school.add(S);
     school.userData.flag = flag;
   }
@@ -468,9 +613,10 @@ export function addGlobeWorld(W) {
       const skRaw = reduce ? 1 : smooth(0.8, 0.95, q);
       const sk = reduce ? 1 : easeOutBack(skRaw);
       school.visible = skRaw > 0.001;
-      school.scale.setScalar(Math.max(0.0001, sk) * 0.9);
+      school.scale.setScalar(Math.max(0.0001, sk) * 0.8);
       school.quaternion.copy(qFrame).multiply(qTilt.setFromAxisAngle(XAX, -1.0 * Math.min(1, sk)));
       school.userData.flag.rotation.y = reduce ? 0 : Math.sin(t * 5) * 0.4;
+      school.userData.beacon.material.color.set(reduce || Math.sin(t * 2.6) > 0.2 ? '#2FBF71' : '#FF5F57'); // the signal comes and goes
       for (let i = 0; i < CLASS; i++) {
         const row = Math.floor(i / 8), col = i % 8;
         const k = reduce ? 1 : easeOutBack(smooth(0.86 + i * 0.004, 0.9 + i * 0.004, q));

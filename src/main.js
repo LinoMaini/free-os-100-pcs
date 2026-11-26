@@ -221,11 +221,29 @@ import { initTerm } from './term.js';
   // offsetTop, not the on-screen box: an element moving in a party mode would shift the box
   const stopTop = (el) => { let y = 0; for (let n = el; n; n = n.offsetParent) y += n.offsetTop; return Math.round(y - navH()); };
   let tweens = 0;
+  // a smooth curve through key points that never overshoots (Fritsch–Carlson), for a page that glides without stopping
+  function pchip(xs, ys) {
+    const n = xs.length, h = [], d = [], m = new Array(n).fill(0);
+    for (let i = 0; i < n - 1; i++) { h[i] = Math.max(1e-6, xs[i + 1] - xs[i]); d[i] = (ys[i + 1] - ys[i]) / h[i]; }
+    for (let i = 1; i < n - 1; i++) {
+      if (d[i - 1] * d[i] <= 0) continue;
+      const w1 = 2 * h[i] + h[i - 1], w2 = h[i] + 2 * h[i - 1];
+      m[i] = (w1 + w2) / (w1 / d[i - 1] + w2 / d[i]);
+    }
+    return (x) => {
+      if (x <= xs[0]) return ys[0];
+      if (x >= xs[n - 1]) return ys[n - 1];
+      let i = 0;
+      while (x > xs[i + 1]) i++;
+      const t = (x - xs[i]) / h[i], t2 = t * t, t3 = t2 * t;
+      return (2 * t3 - 3 * t2 + 1) * ys[i] + (t3 - 2 * t2 + t) * h[i] * m[i] + (-2 * t3 + 3 * t2) * ys[i + 1] + (t3 - t2) * h[i] * m[i + 1];
+    };
+  }
   function scrollToEl(el, done, keepGoing = () => tour.on) { scrollToY(stopTop(el), done, keepGoing); }
   function scrollToY(to, done, keepGoing = () => tour.on) {
     if (reduceMotion) { html.style.scrollBehavior = 'auto'; window.scrollTo(0, to); html.style.scrollBehavior = ''; done(); return; }
     const from = window.scrollY, dist = to - from, t0 = performance.now();
-    const dur = Math.min(1600, 600 + Math.abs(dist) * 0.5);
+    const dur = Math.min(2200, 900 + Math.abs(dist) * 0.55);
     tweens++;
     tour.scrolling = true;
     html.style.scrollBehavior = 'auto';
@@ -233,7 +251,7 @@ import { initTerm } from './term.js';
     const step = (now) => {
       if (!keepGoing()) { end(); return; }
       const p = Math.min(1, (now - t0) / dur);
-      const e = p < 0.5 ? 4 * p * p * p : 1 - (-2 * p + 2) ** 3 / 2;
+      const e = 0.5 - Math.cos(Math.PI * p) / 2; // a gentle glide: no jolt at the start or the end
       window.scrollTo(0, from + dist * e);
       if (p < 1) requestAnimationFrame(step);
       else { end(); done(); }
@@ -291,26 +309,20 @@ import { initTerm } from './term.js';
       const dwell = (left * stop.share) / rest;
       const extra = reduceMotion ? 0 : Math.max(0, stop.el.offsetHeight - window.innerHeight * 1.2);
       const y0 = window.scrollY;
-      // a section with data-hold stops on each of its cards in turn (weights from the script), with a short glide between
+      // a section with data-hold glides past each of its cards in turn, timed to the words of the script (weights)
       const holdBeats = stop.el.hasAttribute('data-hold') && !reduceMotion ? [...stop.el.querySelectorAll(':scope > .beat')] : [];
       let beatAt = null;
       if (holdBeats.length > 1) {
-        const ys = holdBeats.map((b, k) => (k === 0 ? y0 : Math.max(y0, stopTop(b) + navH())));
+        const ys = holdBeats.map((bt, k) => (k === 0 ? y0 : Math.max(y0, stopTop(bt) + navH())));
         const w = String(stop.el.dataset.hold).split(/[\s,]+/).map(Number);
         const weights = holdBeats.map((_, k) => (w[k] > 0 ? w[k] : 1));
-        const sum = weights.reduce((a, x) => a + x, 0);
-        const glide = Math.min(900, dwell * 0.05);
-        const holdTotal = Math.max(0, dwell - glide * (holdBeats.length - 1));
-        const marks = []; // [holdStart, holdEnd] in ms from the start of the stop
-        let t = 0;
-        weights.forEach((x) => { const h = (holdTotal * x) / sum; marks.push([t, t + h]); t += h + glide; });
-        beatAt = (e) => {
-          for (let k = 0; k < marks.length; k++) {
-            if (e < marks[k][1] || k === marks.length - 1) return ys[k];
-            if (e < marks[k + 1][0]) { const f = (e - marks[k][1]) / glide, q = f < 0.5 ? 4 * f * f * f : 1 - (-2 * f + 2) ** 3 / 2; return ys[k] + (ys[k + 1] - ys[k]) * q; }
-          }
-          return ys[ys.length - 1];
-        };
+        const sum = weights.reduce((acc, x) => acc + x, 0);
+        // key points: each card sits in the middle of the screen halfway through its words; the page never stops in between
+        const xs = [0], yk = [ys[0]];
+        let acc = 0;
+        weights.forEach((x, k) => { xs.push(((acc + x / 2) / sum) * dwell); yk.push(ys[k]); acc += x; });
+        xs.push(dwell); yk.push(ys[ys.length - 1]);
+        beatAt = pchip(xs, yk);
       }
       tour.left = dwell;
       let last = performance.now();
@@ -349,6 +361,7 @@ import { initTerm } from './term.js';
   const navTour = document.getElementById('tourBtn');
   function startTour() {
     tour.on = true;
+    tour.startedAt = performance.now();
     tour.paused = false;
     html.classList.add('touring');
     tour.part = 0;
@@ -379,14 +392,25 @@ import { initTerm } from './term.js';
     tbPause.textContent = tour.paused ? 'Resume' : 'Pause';
   });
   document.getElementById('tbStop').addEventListener('click', stopTour);
+  // Only a real scroll takes over. A brush of the trackpad, or the glide a Mac trackpad keeps sending
+  // after a swipe made just before Play, must not stop the tour; scrolling in a demo desktop or on the bars never does.
+  let wheelSum = 0, wheelT = 0, touchY = null;
+  const onBars = (e) => e.target.closest && e.target.closest('.tourbar, .nav, .osv, .fleet');
   const userTakesOver = (e) => {
-    if (!tour.on) return;
-    // scrolling inside a desktop opened for a demo, or on the bars, does not stop the tour
-    if (e.target.closest && e.target.closest('.tourbar, .nav, .osv, .fleet')) return;
-    stopTour();
+    if (!tour.on || performance.now() - tour.startedAt < 2500 || onBars(e)) return;
+    const now = performance.now();
+    if (now - wheelT > 350) wheelSum = 0;
+    wheelT = now;
+    wheelSum += Math.abs(e.deltaY || 0) * (e.deltaMode === 1 ? 33 : e.deltaMode === 2 ? 600 : 1);
+    if (wheelSum > 280) stopTour();
   };
   window.addEventListener('wheel', userTakesOver, { passive: true });
-  window.addEventListener('touchstart', userTakesOver, { passive: true });
+  // on a touch screen a real swipe takes over, a tap does not
+  window.addEventListener('touchstart', (e) => { touchY = e.touches[0] ? e.touches[0].clientY : null; }, { passive: true });
+  window.addEventListener('touchmove', (e) => {
+    if (!tour.on || touchY == null || !e.touches[0] || onBars(e)) return;
+    if (Math.abs(e.touches[0].clientY - touchY) > 40) { touchY = null; stopTour(); }
+  }, { passive: true });
   // During the tour a presentation clicker (or the arrow keys) moves between stops.
   window.addEventListener('keydown', (e) => {
     if (!tour.on || html.classList.contains('osv-lock')) return; // the keys belong to an open desktop

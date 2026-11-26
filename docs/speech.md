@@ -55,9 +55,9 @@ Tempi del tour (la tua chiavetta dura 2:40): The mission 0:00–0:21 (quattro ca
 
 **[The mission]**
 
-*(Cartello 1 – 100 donated PCs)* Good morning, everyone. Asus wants to donate one hundred computers to an NGO.
-*(Cartello 2 – 2 billion people are still offline)* But two billion people are still offline,
-*(Cartello 3 – Wi-Fi and power come and go)* and where these computers are going, Wi-Fi and electricity often stop working.
+*(Cartello 1 – 100 donated PCs)* Good morning, everyone. Asus wants to donate one hundred computers to an NGO, a charity.
+*(Cartello 2 – 2 billion people are still offline)* But two billion people are still offline, without internet,
+*(Cartello 3 – Wi-Fi and power come and go)* and there Wi-Fi and electricity often stop working.
 *(Cartello 4 – Our job)* **So we need a free system that works anyway.**
 
 **[Their first computer]**
@@ -66,13 +66,17 @@ For many people, this will be their first computer. I’m Lino, and with Dennis,
 
 **[What an operating system is]**
 
-To answer it, let’s start from the basics: what is an operating system? A computer, on its own, is just metal and plastic. The operating system is the **software** that brings it to life: it controls the **hardware**, like the keyboard, the screen and the memory, and it gives us the desktop, the windows, the files and the apps we use every day. **Without it, a computer can’t do anything.**
+To answer, let’s start with the basics: what is an operating system? A computer on its own is just metal and plastic. The operating system is the most important **software**, and software means the programs inside the computer.
 
-The most famous ones are Windows and macOS, but they cost money and their code is secret. Our three systems are based on Linux: they do the same job, but for free.
+It controls the **hardware**, the parts you can touch, like the keyboard and the screen, and it gives us the desktop and the apps. **Without it, a computer can’t do anything.**
+
+Windows and macOS are the most famous, but they cost money and their **code**, the instructions of the program, is secret. Our three systems are based on **Linux**, a famous open system, and they do the same job for free.
 
 **[Why free and open]**
 
-But why is free and open so important? **Free** means there is no licence fee to pay, not for one computer and not for one hundred, so the NGO can spend its money on other things. **Open** means that everybody can see the code, use it, copy it and share it, and people all over the world help to fix problems.
+But why free and open? **Free** means there is no **licence**, that is no payment to use it, not for one computer and not for one hundred, so the NGO can spend its money on other things.
+
+**Open** means everybody can see the code, change it and share it, and people everywhere help to fix it.
 
 That’s why the screen says zero euros: **zero euros to put the same system on every PC.** And a teacher can update them all with one USB stick, even without internet.
 
