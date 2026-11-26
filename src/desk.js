@@ -86,7 +86,7 @@ function makeFs(osName) {
     pictures: { name: 'Pictures', icon: 'folder', items: Object.keys(PICS).map(img) },
     music: { name: 'Music', icon: 'folder', items: [{ name: 'Morning song.ogg', type: 'music' }, { name: 'Times tables.ogg', type: 'music' }] },
     downloads: { name: 'Downloads', icon: 'folder', items: [], empty: 'Nothing downloaded yet. This PC is offline, and everything still works.' },
-    usb: { name: 'USB stick', icon: 'usb', items: [{ name: 'Endless OS Full.img', type: 'disc' }, { name: 'endless-installer.exe', type: 'exe' }, txt('README.txt', 'This stick installs Endless OS.\n\n1. Plug it into the PC.\n2. Hold F2 and press power to open the BIOS.\n3. Press F8, pick the USB stick.\n4. Wait: the stick copies Endless OS onto the PC.')] },
+    usb: { name: 'USB stick', icon: 'usb', items: [{ name: 'Endless OS Full.img', type: 'disc' }, { name: 'endless-installer.exe', type: 'exe' }, txt('README.txt', 'This stick installs Endless OS.\n\n1. Plug it into the PC.\n2. Hold F2 and press power to open the BIOS.\n3. Press F8 and pick the USB stick.\n4. Wait: the stick copies Endless OS onto the PC.')] },
     trash: { name: 'Trash', icon: 'trash', items: [], empty: 'The trash is empty.' },
   };
 }
@@ -914,7 +914,7 @@ export function buildDesk(os, { reduceMotion, getScale }) {
 
   function appTyping(body, _a, w) {
     body.classList.add('ap-typing');
-    el('p', 'ty-help', body, { textContent: 'Type the sentence. Green letters are right, red ones need fixing.' });
+    el('p', 'ty-help', body, { textContent: 'Type the sentence. Green letters are right; red ones need fixing.' });
     const target = el('div', 'ty-target', body);
     const input = el('input', 'ty-in', body, { type: 'text', spellcheck: false, autocomplete: 'off' });
     input.setAttribute('aria-label', 'Type here');
