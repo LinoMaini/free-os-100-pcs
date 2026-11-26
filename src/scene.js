@@ -412,6 +412,7 @@ export function createStage(canvas, scenes, sections, opts = {}) {
   // ======================= layout and scroll =======================
   let W = 1, H = 1, mobile = false, baseDist = 14;
   let centers = [], rects = [], spans = [];
+  const nav = document.querySelector('.nav');
   const worldSec = {};
   sections.forEach((el, k) => { const sc = scenes[el.dataset.scene]; if (sc && sc.inside) worldSec[sc.inside] = k; });
   function measure() {
@@ -682,7 +683,13 @@ export function createStage(canvas, scenes, sections, opts = {}) {
         w.group.position.y = (1 - w.p) * -0.9;
         w.group.rotation.y = (1 - w.p) * 0.8;
         const k = worldSec[name];
-        const raw = k === undefined || !rects[k] ? 0.5 : clamp01((window.scrollY + H * 0.5 - rects[k][0]) / rects[k][1]);
+        let raw = k === undefined || !rects[k] ? 0.5 : clamp01((window.scrollY + H * 0.5 - rects[k][0]) / rects[k][1]);
+        if (name === 'install' && rects[k]) {
+          // Play all five animation phases over the two cards' visible travel, matching the tour.
+          const start = rects[k][0] - (nav?.offsetHeight || 0);
+          const travel = Math.max(1, rects[k][1] - H * 1.2);
+          raw = clamp01((window.scrollY - start) / travel);
+        }
         w.sp = w.sp === undefined ? raw : lerp(w.sp, raw, 1 - Math.exp(-dt * 10));
         w.update(time - w.t0, dt, reduce, w.sp);
       }
