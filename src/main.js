@@ -41,7 +41,6 @@ import { initTerm } from './term.js';
     mint:      { inside: 'mint', ax: 0.27, ay: 0.5, max: 0.5, may: 0.28, az: 0.32, el: 0.1, zoom: 1.0, bg: '#FF8F8F' },
     zorin:     { inside: 'zorin', ax: 0.73, ay: 0.5, max: 0.5, may: 0.28, az: -0.32, el: 0.1, zoom: 1.0, bg: '#FFB07A' },
     endless:   { inside: 'endless', ax: 0.27, ay: 0.5, max: 0.5, may: 0.28, az: 0.32, el: 0.1, zoom: 1.0, bg: '#7CC8FF' },
-    scores:    { inside: 'scores', ax: 0.83, ay: 0.5, max: 0.5, may: 0.28, az: -0.45, el: 0.22, zoom: 1.38, mzoom: 1.1, bg: '#C8EE5A' },
     energy:    { inside: 'energy', ax: 0.27, ay: 0.5, max: 0.5, may: 0.28, az: 0.45, el: 0.18, zoom: 1.05, bg: '#6EE2D0' },
     access:    { inside: 'access', ax: 0.74, ay: 0.5, max: 0.5, may: 0.28, az: -0.3, el: 0.12, zoom: 1.0, bg: '#FF9ECF' },
     pick:      { inside: 'pick', ax: 0.72, ay: 0.5, max: 0.5, may: 0.28, az: -0.15, el: 0.16, zoom: 1.0, bg: '#B7A3FF', confetti: true },
@@ -120,73 +119,6 @@ import { initTerm } from './term.js';
   }, { rootMargin: '-45% 0px -50% 0px' });
   document.querySelectorAll('[data-nav]').forEach((el) => navObs.observe(el));
 
-  // ---------- interactive scorecard ----------
-  const OS = [
-    { key: 'mint', name: 'Linux Mint' },
-    { key: 'zorin', name: 'Zorin OS Lite' },
-    { key: 'endless', name: 'Endless OS' },
-  ];
-  const CRITERIA = [
-    { id: 'easy', label: 'Easy to learn', s: [4, 4, 5] },
-    { id: 'offline', label: 'Works offline', s: [2, 2, 5] },
-    { id: 'energy', label: 'Low energy', s: [3, 5, 2] },
-    { id: 'access', label: 'Accessibility', s: [4, 3, 4] },
-    { id: 'future', label: 'Future updates', s: [5, 2, 4] },
-  ];
-  const PRESETS = {
-    equal: [1, 1, 1, 1, 1],
-    offline: [1, 3, 1, 1, 1],
-    power: [1, 1, 3, 1, 1],
-    long: [1, 1, 1, 1, 3],
-  };
-  const weights = [...PRESETS.equal];
-  const table = document.getElementById('scoreTable');
-  const squares = (n, key) => Array.from({ length: 5 }, (_, i) => `<i class="sq${i < n ? ' on' : ''}" data-os="${key}"></i>`).join('');
-  table.innerHTML =
-    `<div class="srow shead"><span>Criterion</span><span>Weight</span>${OS.map((o) => `<span class="h-${o.key}">${o.name}</span>`).join('')}</div>` +
-    CRITERIA.map((c, r) => `<div class="srow">
-      <span class="crit">${c.label}</span>
-      <label class="weight"><span class="vh">How much ${c.label.toLowerCase()} matters</span>
-        <input type="range" min="0" max="3" step="1" value="1" id="w-${c.id}" data-row="${r}">
-        <output id="o-${c.id}">×1</output></label>
-      ${c.s.map((v, i) => `<span class="cell" aria-label="${OS[i].name}: ${v} out of 5"><b class="mob">${OS[i].name}</b>${squares(v, OS[i].key)}</span>`).join('')}
-    </div>`).join('') +
-    `<div class="srow stot"><span class="crit">Total</span><span class="weight" id="maxNote"></span>${OS.map((o) => `<span class="cell tot" id="t-${o.key}"></span>`).join('')}</div>`;
-
-  function renderTotals() {
-    stage?.setScores(weights, CRITERIA.map((c) => c.s));
-    const max = 5 * weights.reduce((a, b) => a + b, 0);
-    const totals = OS.map((_, i) => CRITERIA.reduce((sum, c, r) => sum + c.s[i] * weights[r], 0));
-    const best = Math.max(...totals);
-    const leaders = totals.filter((v) => v === best).length;
-    document.getElementById('maxNote').textContent = max ? `out of ${max}` : 'pick at least one';
-    OS.forEach((o, i) => {
-      const el = document.getElementById('t-' + o.key);
-      const pct = max ? Math.round((totals[i] / max) * 100) : 0;
-      const top = max && totals[i] === best;
-      el.innerHTML = `<b class="mob">${o.name}</b><strong>${totals[i]}</strong><span class="meter"><i style="width:${pct}%"></i></span>${top ? `<em class="lead">${leaders > 1 ? 'Tied top' : 'Top score'}</em>` : ''}`;
-    });
-    CRITERIA.forEach((c, r) => {
-      document.getElementById('w-' + c.id).value = String(weights[r]);
-      document.getElementById('o-' + c.id).textContent = '×' + weights[r];
-    });
-  }
-  table.addEventListener('input', (e) => {
-    const r = e.target.dataset.row;
-    if (r === undefined) return;
-    weights[Number(r)] = Number(e.target.value);
-    document.querySelectorAll('.presets button').forEach((b) => b.setAttribute('aria-pressed', 'false'));
-    renderTotals();
-  });
-  document.querySelectorAll('.presets button').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      PRESETS[btn.dataset.preset].forEach((w, i) => { weights[i] = w; });
-      document.querySelectorAll('.presets button').forEach((b) => b.setAttribute('aria-pressed', String(b === btn)));
-      renderTotals();
-    });
-  });
-  renderTotals();
-
   // ---------- the tour: four speakers, individual timings ----------
   // Each speaker's part lasts exactly its time (partMs). Inside a part the tour moves on by itself, giving every stop its share of the
   // time that is left, so a click forward or back just shares the rest out again. When the speaker’s time is up the tour
@@ -202,7 +134,7 @@ import { initTerm } from './term.js';
   const PARTS = [
     [['world', 20], ['top', 15], ['os', 60], ['free', 60]], // Lino Maini: the mission, the question, what an OS is and why free and open (seconds of his 2:40, from his script)
     [['teardown', 30], ['challenge', 26], ['method', 30], ['energy', 16], ['access', 18]], // Dennis Boschi: inside the computer, how we narrowed it down, energy and accessibility
-    [['mint', 40], ['zorin', 30], ['endless', 34], ['scores', 36], ['pick', 30]], // Roberto Cacace: the three systems (live desktops on Zorin and Endless), the scores and our pick
+    [['mint', 40], ['zorin', 30], ['endless', 34], ['pick', 30]], // Roberto Cacace: the three systems (live desktops on Zorin and Endless), our pick
     [['install', 55], ['bonus', 20], ['end', 15]], // Davide Miron: two install cards, IBM fun fact and questions
   ];
   const tourStops = [];

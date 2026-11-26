@@ -4,7 +4,7 @@ import { STOPS, okCode, topics, readMsg, seq, brokers, installProgress } from '.
 
 const $ = (s) => document.querySelector(s);
 // which picture each tour stop puts on the phone's screen
-const SCREEN = { world: 'globe', top: 'boot', os: 'os', free: 'free', teardown: 'bits', challenge: 'boot', method: 'filter', mint: 'mint', zorin: 'zorin', endless: 'endless', scores: 'scores', energy: 'scores', access: 'scores', pick: 'pick', install: 'install', end: 'end', bonus: 'heavy' };
+const SCREEN = { world: 'globe', top: 'boot', os: 'os', free: 'free', teardown: 'bits', challenge: 'boot', method: 'filter', mint: 'mint', zorin: 'zorin', endless: 'endless', energy: 'scores', access: 'scores', pick: 'pick', install: 'install', end: 'end', bonus: 'heavy' };
 const store = (k, v) => { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (e) { /* private mode */ } return null; };
 const buzz = (p) => { try { if (navigator.vibrate) navigator.vibrate(p); } catch (e) { /* not allowed */ } };
 

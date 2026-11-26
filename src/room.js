@@ -13,7 +13,6 @@ export const STOPS = {
   mint: 'Linux Mint, the familiar one',
   zorin: 'Zorin OS Lite, the light one',
   endless: 'Endless OS, the offline one',
-  scores: 'How they score',
   energy: 'Energy',
   access: 'Accessibility',
   pick: 'Our pick',
