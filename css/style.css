@@ -707,19 +707,13 @@ html[data-td="1"] .td-cap [data-l="1"],html[data-td="2"] .td-cap [data-l="2"],ht
 @media (prefers-reduced-motion:reduce){:root:not(.motion-on) .term::details-content{transition:none}:root:not(.motion-on) .term-cursor,:root:not(.motion-on) .term.typing .term-typed{animation:none}}
 /* Classroom displays: enlarge the presentation, keeping app and navigation controls independent. */
 @media (min-width:821px){
-  main .scene{grid-template-columns:repeat(12,minmax(0,1fr));font-size:clamp(26px,1.6vw,30px);line-height:1.25}
-  main .card{grid-column:1 / span 7;padding:24px;gap:14px;rotate:0deg}
-  main .right .card{grid-column:6 / span 7}
-  main .world .beat{grid-template-columns:repeat(12,minmax(0,1fr))}
-  main .world .card{grid-column:1 / span 7}
-  main :is(#challenge,#method,#energy,#access,.os) .card{grid-column:1 / span 9}
-  main :is(#challenge,#energy,.os).right .card{grid-column:4 / span 9}
-  main .wide .card{grid-column:1 / span 10}
-  main .card h2,main .world .card h2{font-size:clamp(48px,3.4vw,64px)}
+  main .scene{font-size:clamp(26px,1.6vw,30px);line-height:1.25}
+  main .card{padding:24px;gap:14px;rotate:0deg}
+  main .card h2,main .world .card h2{font-size:clamp(40px,3.4vw,64px)}
   main .os h2 .chip{font-size:clamp(48px,3.2vw,60px)}
   main .card h3,main .steps b{font-size:26px}
   main .lead{font-size:clamp(26px,1.6vw,30px)}
-  main .hero-copy{grid-column:1 / span 7;gap:16px}
+  main .hero-copy{gap:16px}
   main .byline{font-size:20px}
   main .punch,main .tagline{font-size:26px}
   main :is(.stat span,.steps span,.tile p,.small,.count,.facts dt,.facts small,.brow em,.shead){font-size:20px;line-height:1.25}
@@ -730,7 +724,7 @@ html[data-td="1"] .td-cap [data-l="1"],html[data-td="2"] .td-cap [data-l="2"],ht
   main .pros{font-size:24px;line-height:1.25;gap:16px}
   main .pros ul{margin-top:4px}
   main .facts div{padding:8px 10px}
-  main .brow{grid-template-columns:8.5em minmax(0,1fr)}
+  main .brow{grid-template-columns:7em minmax(0,1fr)}
   main .bars{gap:8px}
   main #plan .timeline b{font-size:30px}
   main #plan .timeline span{font-size:26px}
@@ -741,14 +735,10 @@ html[data-td="1"] .td-cap [data-l="1"],html[data-td="2"] .td-cap [data-l="2"],ht
   main .tot .lead{font-size:20px}
   main .team{font-size:22px}
 }
-@media (min-width:821px) and (max-width:1100px){
-  main .card,main .right .card,main .world .card,main :is(#challenge,#method,#energy,#access,.os) .card,main :is(#challenge,#energy,.os).right .card,main .wide .card{grid-column:1 / -1}
-  main .hero-copy{grid-column:1 / span 9}
-}
+
 @media (min-width:821px){
-  main #pick .card{grid-column:1 / span 9}
   main .pick-name{font-size:clamp(52px,4.5vw,80px)!important}
-  main #scores .card{padding:18px;gap:10px}
+  main #scores .card{padding:16px;gap:8px}
   main #scores .scoretable{padding:6px;gap:2px;font-size:20px;line-height:1.1}
   main #scores .srow{grid-template-columns:minmax(0,1.4fr) minmax(0,1.2fr) repeat(3,minmax(0,1fr));padding:2px 0;gap:8px}
   main #scores .weight input{height:28px}
@@ -756,9 +746,9 @@ html[data-td="1"] .td-cap [data-l="1"],html[data-td="2"] .td-cap [data-l="2"],ht
   main #scores .shead{line-height:1.1}
   main #scores .tot .lead{font-size:20px}
 }
-@media (min-width:821px) and (max-width:1100px){main #pick .card{grid-column:1 / -1}}
 @media (min-width:821px) and (max-height:850px){
-  main .card{padding:18px;gap:10px}
+  main .card{padding:16px;gap:8px}
+  main .card h2,main .world .card h2{font-size:clamp(40px,3.4vw,48px)}
   main .pros{font-size:24px;line-height:1.15}
   main .facts dd{font-size:30px}
   main .tile h3{font-size:24px}
@@ -772,4 +762,22 @@ html[data-td="1"] .td-cap [data-l="1"],html[data-td="2"] .td-cap [data-l="2"],ht
 }
 @media (min-width:821px) and (max-height:850px){
   main .hero h1{font-size:clamp(72px,7vw,100px)}
+}
+@media (min-width:821px) and (max-width:1100px){
+  main .scene,main .lead{font-size:24px}
+  main .card{padding:16px;gap:8px}
+  main .os h2 .chip{font-size:34px;padding:8px 10px}
+  main .card h3,main .steps b,main .punch,main .tagline{font-size:24px}
+  main .pros{font-size:22px;line-height:1.15;gap:10px}
+  main .facts{gap:6px}
+  main .facts div{padding:6px}
+  main .facts dd{font-size:26px}
+  main .facts dt,main .facts small{font-size:18px}
+  main .pick-name{font-size:44px!important}
+  main .finals{gap:6px}
+  main .finals .tag{font-size:18px;padding:7px 8px}
+  main .brow{font-size:22px;grid-template-columns:6.8em minmax(0,1fr)}
+  main .big-sticker{gap:4px 10px;padding:8px}
+  main .big-sticker b{font-size:36px}
+  main .big-sticker span{font-size:20px}
 }
