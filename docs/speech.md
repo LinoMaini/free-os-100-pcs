@@ -2,36 +2,36 @@
 
 ## Come usarlo
 
-Lino ha 2:40, gli altri 3 minuti esatti: all'inizio premete **Play the tour** e il sito divide il tempo così, scorrendo la pagina dall'alto in basso.
+Lino ha 2:40, Dennis e Roberto 3 minuti, Davide 1:30: all'inizio premete **Play the tour** e il sito divide il tempo così, scorrendo la pagina dall'alto in basso.
 
 | Chi | Tappe del tour |
 | --- | --- |
 | Lino | The mission, Their first computer, What an operating system is, Why free and open |
 | Dennis | Inside the computer, Who we’re choosing for, About 100 in, 3 out, Energy, Accessibility |
 | Roberto | Linux Mint, Zorin OS Lite, Endless OS (demo dei desktop), How they score, Our pick |
-| Davide | How to install it, After the install, Fun fact: the heaviest system, Questions? |
+| Davide | Prepare the USB, Install on 100 PCs, Fun fact: the heaviest system, Questions? |
 
-Nota: il copione di Lino segue già questa divisione; quelli di Dennis, Roberto e Davide qui sotto sono ancora divisi come prima e vanno riassegnati.
+Nota: i copioni di Lino e Davide seguono questa divisione. Quelli di Dennis e Roberto sono ancora quelli precedenti e vanno aggiornati. Questo file è la fonte aggiornata; il PDF precedente non include la nuova parte breve di Davide.
 
-Il timer è nascosto nella chiavetta USB con gli occhi, sotto la barra in alto: in 3 minuti attraversa lo schermo da sinistra a destra.
+Il timer è nascosto nella chiavetta USB con gli occhi, sotto la barra in alto: attraversa lo schermo da sinistra a destra durante il tempo assegnato a ciascuno.
 
 - Linea arancione: tutto a posto.
 - Linea rossa: mancano 30 secondi, chiudete.
 - La chiavetta trema: mancano 10 secondi, ultima frase.
-- A 3:00 il tour passa da solo al compagno successivo (se il desktop della demo è aperto, si chiude da solo) e la chiavetta riparte da sinistra. Dopo Roberto si ferma su Questions?.
+- Alla fine del tempo assegnato il tour passa da solo al compagno successivo (se il desktop della demo è aperto, si chiude da solo) e la chiavetta riparte da sinistra. Dopo Davide si ferma su Questions?.
 
-**Demo del desktop (Davide e Dennis):** cliccate il pulsante con il monitor accanto al nome del sistema; il desktop si apre a tutto schermo e si usa davvero. Esc lo chiude. Mentre è aperto le frecce servono al desktop, non al tour.
+**Demo del desktop (Roberto):** cliccate il pulsante con il monitor accanto al nome del sistema; il desktop si apre a tutto schermo e si usa davvero. Esc lo chiude. Mentre è aperto le frecce servono al desktop, non al tour.
 
 **Telefoni del pubblico (prima di iniziare):** premete il pulsante con il telefono in alto (o J): compare un QR con un codice di sei lettere. La classe lo inquadra e ogni telefono diventa uno dei 100 PC, con il suo numero; i quadratini si accendono sullo schermo. Poi premete **Play the tour**: il riquadro va in un angolo e i telefoni seguono da soli le tappe. A **How to install it** i telefoni installano Endless OS dieci alla volta, come le dieci chiavette, e i quadratini si riempiono di arancione. Serve internet sul PC che presenta e sui telefoni; se la rete della scuola lo blocca, il sito va avanti normalmente. **End** chiude la stanza.
 
 **Senza internet:** aprite il sito una volta con internet, sullo stesso PC e browser (anche il giorno prima): da lì funziona anche senza. Se il Wi-Fi cade, in alto compare l'adesivo **Offline** e si continua. Si può anche installare come app: in Chrome l'icona di installazione nella barra dell'indirizzo, in Safari File → Aggiungi al Dock.
 
-Con il telecomando o le frecce → e ← andate avanti o indietro di una tappa: il tempo che vi resta si ridistribuisce sulle tappe rimaste. **Pause**, nella barra in basso, ferma il tour e anche il passaggio automatico; Esc lo chiude. Per una prova veloce, wedarealgoat.dev/?slot=60 fa durare ogni parte 60 secondi.
+Con il telecomando o le frecce → e ← andate avanti o indietro di una tappa: il tempo che vi resta si ridistribuisce sulle tappe rimaste. **Pause**, nella barra in basso, ferma il tour e anche il passaggio automatico; Esc lo chiude. Per una prova veloce, wedarealgoat.dev/?slot=60 porta le parti da 3 minuti a 60 secondi e riduce in proporzione quelle di Lino e Davide.
 
 - Le righe **[Nome della tappa]** dicono dove si trova il tour; le righe in *corsivo tra parentesi* sono le azioni da fare.
 - Non leggete parola per parola: imparate a memoria la prima e l’ultima frase e usate il resto come traccia.
 - Le frasi in **grassetto** sono quelle chiave: rallentate e guardate il pubblico.
-- Ogni parte è di 330–400 parole più la demo: a ritmo calmo dura circa 2:45, così vi restano secondi di margine.
+- La parte breve di Davide dura circa 1:30; fate una prova con il tour per rispettare i cambi di slide.
 
 Pronuncia delle parole più difficili:
 
@@ -82,31 +82,7 @@ That’s why the screen says zero euros: **zero euros to put the same system on 
 
 Now Dennis will show you what is inside a computer.
 
-## Speaker 2 – Davide Miron
-
-*Zorin OS Lite · 3 minutes · the tour stays on Zorin OS Lite*
-
-**[Zorin OS Lite]**
-
-Thank you, Lino. I’m Davide, and my system is the light one: Zorin OS Lite.
-
-Zorin OS Lite is built on Xfce, one of the lightest desktops around. A lighter desktop asks less of the processor and the memory, so it stays quick on modest computers and uses a bit less electricity. In places where power is a real problem, that matters.
-
-It also looks familiar: a simple start menu and a taskbar, much like the Windows computers you know.
-
-*(Click the monitor button next to “Zorin OS Lite”: the desktop opens.)*
-
-This is a simplified copy of the Zorin desktop that we built into our website, and it really works. Here is the menu: I can search for an app, open the files, write a note and save it. Windows open, move and close just like on a real computer. And look at the Wi-Fi icon: it’s offline, like in many of the schools we’re talking about.
-
-*(Press Esc to close the desktop.)*
-
-But our research found an important detail. **Zorin says version 18 is the last one with a Lite edition.** It’s supported until June 2029; after that, users would have to move to a heavier edition. Its community is also smaller than Mint’s and, like Mint, it needs the internet for most apps.
-
-And to be honest about energy: all three systems run on 2 gigabytes of memory, and a new Asus desktop handles any of them easily. The biggest savings come from settings like sleep mode and screen dimming, which all three have.
-
-**So Zorin Lite wins on energy, but it has the shortest future.** Dennis will show you the offline one.
-
-## Speaker 3 – Dennis Boschi
+## Speaker 2 – Dennis Boschi
 
 *Endless OS · 3 minutes · the tour stays on Endless OS*
 
@@ -130,7 +106,7 @@ It also helps people with different needs: zoom, large text and high-contrast th
 
 So, three good options. Which one is best? Roberto will compare them and give you our answer.
 
-## Speaker 4 – Roberto Cacace
+## Speaker 3 – Roberto Cacace
 
 *The comparison, our pick and the plan · 3 minutes*
 
@@ -171,6 +147,38 @@ Then we train five to ten local people as computer champions: they learn first, 
 To sum up: **a computer should keep working even when the internet doesn’t.** Asus isn’t just giving away one hundred machines: with the right system, it’s giving one hundred communities a first window onto the world’s knowledge.
 
 Thank you for listening. We’re happy to answer your questions.
+
+## Speaker 4 – Davide Miron
+
+*Two installation cards, the IBM fun fact and questions · 1 minute 30 · simple English*
+
+Il tour assegna circa 55 secondi all’installazione, 20 alla curiosità e 15 alla conclusione. Le due schede di installazione scorrono nella stessa tappa. Non serve leggere F2, F8 o altri dettagli tecnici.
+
+**[Prepare the USB]**
+
+Thank you, Roberto. Now, how do we install Endless OS?
+
+First, we download the full edition, which includes apps that work offline. Then we prepare a USB stick with at least thirty-two gigabytes of space.
+
+**[Install on 100 PCs]**
+
+We start the computer from the USB stick and install the system. When it finishes, we use the same stick on the next PC.
+
+With ten USB sticks, we can install ten computers at once. **Ten rounds, and all one hundred PCs are ready.**
+
+**[Fun fact: the IBM system]**
+
+A fun fact: IBM mainframes serve big businesses. This machine weighs over two tonnes, and its system has a monthly fee.
+
+**Our operating system is free for all one hundred PCs.**
+
+**[Questions?]**
+
+Our choice is Endless OS. Linux Mint is our plan B.
+
+**A computer should keep working even when the internet doesn’t.**
+
+Thank you. Any questions?
 
 ## Likely questions
 

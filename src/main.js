@@ -46,7 +46,6 @@ import { initTerm } from './term.js';
     access:    { inside: 'access', ax: 0.74, ay: 0.5, max: 0.5, may: 0.28, az: -0.3, el: 0.12, zoom: 1.0, bg: '#FF9ECF' },
     pick:      { inside: 'pick', ax: 0.72, ay: 0.5, max: 0.5, may: 0.28, az: -0.15, el: 0.16, zoom: 1.0, bg: '#B7A3FF', confetti: true },
     install:   { inside: 'install', ax: 0.66, ay: 0.5, max: 0.5, may: 0.34, az: 0.1, el: 0.12, zoom: 0.95, mzoom: 1.22, bg: '#5CE1E6' },
-    plan:      { ax: 0.27, ay: 0.5, max: 0.5, may: 0.28, az: 0.45, el: 0.3, zoom: 1.2, mzoom: 1.3, screen: 'usb', crowd: 1, lit: 1, bg: '#FFE14D' },
     bonus:     { inside: 'mainframe', ax: 0.27, ay: 0.52, max: 0.5, may: 0.28, az: 0.35, el: 0.16, zoom: 1.05, bg: '#A6C8FF' },
     end:       { ax: 0.72, ay: 0.52, max: 0.5, may: 0.28, az: -0.4, el: 0.22, zoom: 1.15, mzoom: 1.3, screen: 'smile', crowd: 1, lit: 1, bg: '#FFE14D', confetti: true },
   };
@@ -188,15 +187,15 @@ import { initTerm } from './term.js';
   });
   renderTotals();
 
-  // ---------- the tour: four speakers, three minutes each ----------
+  // ---------- the tour: four speakers, individual timings ----------
   // Each speaker's part lasts exactly its time (partMs). Inside a part the tour moves on by itself, giving every stop its share of the
-  // time that is left, so a click forward or back just shares the rest out again. When the three minutes are up the tour
+  // time that is left, so a click forward or back just shares the rest out again. When the speaker’s time is up the tour
   // goes to the next speaker's first stop. The only clock is hidden in plain sight: the little USB stick in the top bar
-  // walks across in three minutes, the line behind it turns red in the last 30 seconds and the stick shakes in the last 10.
-  // ?slot=60 shortens every part (seconds), for a quick rehearsal
-  // each speaker's time in seconds: Lino's opening is quicker (2:40), the others have three minutes.
+  // walks across during each part, the line behind it turns red in the last 30 seconds and the stick shakes in the last 10.
+  // ?slot=60 makes a three-minute part last 60 seconds, for a quick rehearsal
+  // Each speaker's time: Lino 2:40, Dennis and Roberto 3:00, Davide's short close 1:30.
   // ?slot=N rehearses faster: N is what a three-minute part becomes, the others scale with it.
-  const PART_SECS = [160, 180, 180, 180];
+  const PART_SECS = [160, 180, 180, 90];
   const slotQ = Number(new URLSearchParams(location.search).get('slot'));
   const partMs = (k) => Math.max(10, (PART_SECS[k] ?? 180) * (slotQ > 0 ? slotQ / 180 : 1)) * 1000;
   // each speaker takes a run of stops in page order, so the tour scrolls straight down the page
@@ -204,7 +203,7 @@ import { initTerm } from './term.js';
     [['world', 20], ['top', 15], ['os', 60], ['free', 60]], // Lino Maini: the mission, the question, what an OS is and why free and open (seconds of his 2:40, from his script)
     [['teardown', 30], ['challenge', 26], ['method', 30], ['energy', 16], ['access', 18]], // Dennis Boschi: inside the computer, how we narrowed it down, energy and accessibility
     [['mint', 40], ['zorin', 30], ['endless', 34], ['scores', 36], ['pick', 30]], // Roberto Cacace: the three systems (live desktops on Zorin and Endless), the scores and our pick
-    [['install', 60], ['plan', 24], ['bonus', 26], ['end', 20]], // Davide Miron: how to install it, the plan and the close
+    [['install', 55], ['bonus', 20], ['end', 15]], // Davide Miron: two install cards, IBM fun fact and questions
   ];
   const tourStops = [];
   PARTS.forEach((list, part) => list.forEach(([id, share]) => { const el = document.getElementById(id); if (el) tourStops.push({ el, part, share }); }));
@@ -289,7 +288,7 @@ import { initTerm } from './term.js';
     if (i >= tourStops.length) { stopTour(); return; }
     cancelAnimationFrame(tour.raf);
     const stop = tourStops[i];
-    // moving on to a later part hands over to the next speaker: their three minutes start now
+    // moving on to a later part hands over to the next speaker: their allotted time starts now
     // (a desktop opened for a live demo closes first)
     if (stop.part > tour.part) {
       tour.part = stop.part;
