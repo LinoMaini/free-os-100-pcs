@@ -445,14 +445,30 @@ export function addInstallWorld(W) {
   const hv = new THREE.Vector3(), look = new THREE.Vector3();
   let lastU = 0, fired = { done1: false, done100: false, keys: [false, false, false, false] };
 
-  let activeStep = -1, stepTime = 0;
+  let activeStep = -1, stepTime = 0, flight = null;
+  const view = [...F.b];
+  const flightTarget = new THREE.Vector3();
+  const FLIGHT_SECONDS = 1.05;
   W.install = {
     group,
-    onEnter() { activeStep = -1; },
+    onEnter() { activeStep = -1; flight = null; },
     update(t, dt, reduce, sp = 0) {
       const step = Math.round(clamp01(sp) * 2);
-      if (step !== activeStep) { activeStep = step; stepTime = 0; }
-      else stepTime += dt;
+      if (step !== activeStep) {
+        // Start from the rendered pose, even when a quick reverse interrupts a flight.
+        flight = activeStep < 0 || reduce ? null : {
+          elapsed: 0, position: hero.position.clone(), rotation: hero.rotation.z,
+          scale: hero.scale.clone(), view: [...view],
+          stations: [deskA.visible, deskB.visible, gridRoot.visible],
+          fleet: step === 2 || gridRoot.visible,
+        };
+        activeStep = step;
+        stepTime = 0;
+      } else if (flight) {
+        flight.elapsed = Math.min(FLIGHT_SECONDS, flight.elapsed + dt);
+      } else stepTime += dt;
+      if (reduce) flight = null;
+      const flightProgress = flight ? ease(flight.elapsed / FLIGHT_SECONDS) : 1;
       const progress = reduce ? 1 : clamp01(stepTime / 8);
       // Stay inside this card's action; never traverse the other actions on a slide change.
       const ranges = [[1.22, 1.85], [3.0, 3.7], [4.15, 4.7]];
@@ -461,15 +477,19 @@ export function addInstallWorld(W) {
       lastU = u;
       const wob = reduce ? 0 : 1;
 
-      // camera dolly
-      const [fx, fy, fs] = [F.b, F.d, F.e][step];
+      // Follow the stick between stations, then hold the new slide's framing.
+      const targetView = [F.b, F.d, F.e][step];
+      for (let i = 0; i < view.length; i++) view[i] = flight ? lerp(flight.view[i], targetView[i], flightProgress) : targetView[i];
+      // The fleet's high landing point needs room while the framing changes scale.
+      if (flight?.fleet) view[2] *= 1 - 0.45 * Math.sin(Math.PI * flightProgress);
+      const [fx, fy, fs] = view;
       cam.scale.setScalar(fs);
       cam.position.set(-fx * fs, -fy * fs, 0);
       cam.rotation.z = 0;
 
-      deskA.visible = step === 0;
-      deskB.visible = step === 1;
-      gridRoot.visible = board.visible = step === 2;
+      deskA.visible = step === 0 || !!flight?.stations[0];
+      deskB.visible = step === 1 || !!flight?.stations[1];
+      gridRoot.visible = board.visible = step === 2 || !!flight?.stations[2];
 
       // ---- 1: download ----
       const p1 = smooth(0.28, 0.9, u);
@@ -485,7 +505,7 @@ export function addInstallWorld(W) {
 
       // bits: cloud → laptop while downloading, laptop → stick while writing
       const downOn = u > 0.2 && u < 0.92, writeOn = u > 1.22 && u < 1.82;
-      bits.visible = downOn || writeOn;
+      bits.visible = !flight && (downOn || writeOn);
       if (bits.visible) {
         for (let i = 0; i < BITS; i++) {
           const b = bitSeed[i];
@@ -505,7 +525,7 @@ export function addInstallWorld(W) {
         bits.instanceMatrix.needsUpdate = true;
       }
       const clockK = smooth(1.15, 1.3, u) * (1 - smooth(1.8, 1.95, u));
-      clock.visible = clockK > 0.001;
+      clock.visible = !flight && clockK > 0.001;
       clock.scale.setScalar(Math.max(0.0001, easeOutBack(clockK)));
       handM.rotation.z = -(reduce ? 1 : t * 9 + p2 * 30);
       handH.rotation.z = handM.rotation.z / 12;
@@ -551,14 +571,21 @@ export function addInstallWorld(W) {
         rotZ = wob ? Math.sin(t * 5) * 0.2 : 0;
         look.set(0, -1, 1);
       }
+      hero.scale.set(HS / squash, HS * squash, HS);
+      if (flight) {
+        flightTarget.copy(hv);
+        arc(flight.position, flightTarget, flightProgress, flight.fleet ? 0.25 : 1.2, hv);
+        const turn = Math.atan2(Math.sin(rotZ - flight.rotation), Math.cos(rotZ - flight.rotation));
+        rotZ = flight.rotation + turn * flightProgress;
+        hero.scale.lerpVectors(flight.scale, hero.scale, flightProgress);
+      }
       hero.position.copy(hv);
       hero.rotation.set(0, 0, rotZ);
-      hero.scale.set(HS / squash, HS * squash, HS);
       hero.userData.bodyMat.emissiveIntensity = glow;
       hero.userData.pupils.forEach((p) => p.position.set(look.x * 0.02, look.y * 0.02, 0.04));
       // the "reformatter" badge pops up over the finished stick
       const fk = smooth(1.78, 1.88, u) * (1 - smooth(2.05, 2.2, u));
-      fmtLabel.visible = fk > 0.001;
+      fmtLabel.visible = !flight && fk > 0.001;
       fmtLabel.scale.setScalar(0.3 * Math.max(0.0001, easeOutBack(fk)));
       fmtLabel.position.set(hv.x, hv.y + 0.45, hv.z + 0.1);
 
@@ -577,7 +604,7 @@ export function addInstallWorld(W) {
       fired.done1 = done1;
 
       // ---- 5: ten sticks, 100 PCs ----
-      if (gridRoot.visible) {
+      if (gridRoot.visible && (!flight || step === 2)) {
         const P = clamp01((u - 4.12) / 0.5);
         let count = 0;
         for (let r = 0; r < 10; r++) {
@@ -635,6 +662,7 @@ export function addInstallWorld(W) {
       }
       conf.update(dt);
       conf2.update(dt);
+      if (flight?.elapsed === FLIGHT_SECONDS) flight = null;
     },
   };
 }
