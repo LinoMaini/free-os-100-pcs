@@ -72,7 +72,7 @@ The most famous ones are Windows and macOS, but they cost money and their code i
 
 **[Why free and open]**
 
-But why is free and open so important? **Free** means there is no licence to pay, not for one computer and not for one hundred, so the NGO can spend its money on other things. **Open** means that everybody can see the code, use it, copy it and share it, and people all over the world help to fix problems.
+But why is free and open so important? **Free** means there is no licence fee to pay, not for one computer and not for one hundred, so the NGO can spend its money on other things. **Open** means that everybody can see the code, use it, copy it and share it, and people all over the world help to fix problems.
 
 That’s why the screen says zero euros: **zero euros to put the same system on every PC.** And a teacher can update them all with one USB stick, even without internet.
 
@@ -86,7 +86,7 @@ Now Dennis will show you what is inside a computer.
 
 Thank you, Lino. I’m Davide, and my system is the light one: Zorin OS Lite.
 
-Zorin OS Lite is built on Xfce, one of the lightest desktops around. A lighter desktop asks less from the processor and the memory, so it stays quick on modest computers and uses a bit less electricity. In places where power is a real problem, that matters.
+Zorin OS Lite is built on Xfce, one of the lightest desktops around. A lighter desktop asks less of the processor and the memory, so it stays quick on modest computers and uses a bit less electricity. In places where power is a real problem, that matters.
 
 It also looks familiar: a simple start menu and a taskbar, much like the Windows computers you know.
 
