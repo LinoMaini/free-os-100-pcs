@@ -9,7 +9,7 @@ Lino ha 2:00, Dennis e Roberto 3 minuti, Davide 1:30: all'inizio premete **Play 
 | Lino | The mission, Their first computer, What an operating system is, Why free and open |
 | Dennis | Inside the computer, Who we’re choosing for, About 100 in, 3 out, Energy, Accessibility |
 | Roberto | Linux Mint, Zorin OS Lite, Endless OS (demo dei desktop), Our pick |
-| Davide | Prepare the USB, Install on 100 PCs, Fun fact: the heaviest system, Questions? |
+| Davide | Prepare the USB, Install on one PC, Repeat on 100 PCs, Fun fact: the heaviest system, Questions? |
 
 Nota: i copioni di Lino e Davide seguono questa divisione. Quelli di Dennis e Roberto sono ancora quelli precedenti e vanno aggiornati. Questo file è la fonte aggiornata; il PDF precedente non include la nuova parte breve di Davide.
 
@@ -138,9 +138,9 @@ Thank you for listening. We’re happy to answer your questions.
 
 ## Speaker 4 – Davide Miron
 
-*Two installation cards, the IBM fun fact and questions · 1 minute 30 · simple English*
+*Three installation cards, the IBM fun fact and questions · 1 minute 30 · simple English*
 
-Il tour assegna circa 55 secondi all’installazione, 20 alla curiosità e 15 alla conclusione. Le due schede di installazione scorrono nella stessa tappa. Non serve leggere F2, F8 o altri dettagli tecnici.
+Il tour assegna circa 55 secondi all’installazione, 20 alla curiosità e 15 alla conclusione. Le tre schede di installazione hanno ciascuna la propria tappa e animazione. Non serve leggere F2, F8 o altri dettagli tecnici.
 
 **[Prepare the USB]**
 
@@ -148,9 +148,11 @@ Thank you, Roberto. Now, how do we install Endless OS?
 
 First, we download the full edition, which includes apps that work offline. Then we prepare a USB stick with at least thirty-two gigabytes of space.
 
-**[Install on 100 PCs]**
+**[Install on one PC]**
 
 We start the computer from the USB stick and install the system. When it finishes, we use the same stick on the next PC.
+
+**[Repeat on 100 PCs]**
 
 With ten USB sticks, we can install ten computers at once. **Ten rounds, and all one hundred PCs are ready.**
 

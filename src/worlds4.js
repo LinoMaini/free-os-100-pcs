@@ -1,6 +1,5 @@
-// The install tutorial, in 3D. A USB stick with eyes does the whole job while you scroll:
-// 1 download Endless OS, 2 turn the stick into a "reformatter" USB, 3 boot an Asus PC from it (F2, then F8),
-// 4 Endless OS installs itself, 5 ten sticks hop across 100 PCs until the board reads 100/100.
+// Three installation slides, each with one action: prepare the USB, install on
+// one PC, then repeat across the fleet. Each action plays while its card is visible.
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { COLORS } from './screens.js';
@@ -435,17 +434,6 @@ export function addInstallWorld(W) {
     d: [7.5, 0.3, 1.45],
     e: [16.0, 0.95, 0.4],
   };
-  const KF = [[0, F.a], [0.8, F.a], [1.12, F.b], [1.8, F.b], [2.2, F.c], [2.86, F.c], [3.1, F.d], [3.78, F.d], [4.14, F.e], [5, F.e]];
-  const frame = (u) => {
-    for (let i = 1; i < KF.length; i++) {
-      if (u <= KF[i][0]) {
-        const [u0, a] = KF[i - 1], [u1, b] = KF[i];
-        const k = ease(clamp01((u - u0) / (u1 - u0)));
-        return [lerp(a[0], b[0], k), lerp(a[1], b[1], k), lerp(a[2], b[2], k), a === b ? 0 : Math.sin(Math.PI * k)];
-      }
-    }
-    return [...F.e, 0];
-  };
 
   // the stick's path: waiting by the laptop, plugged in, flying to the PC, then on top of the board
   const HS = 1.3; // the hero is a bit bigger than life
@@ -457,23 +445,31 @@ export function addInstallWorld(W) {
   const hv = new THREE.Vector3(), look = new THREE.Vector3();
   let lastU = 0, fired = { done1: false, done100: false, keys: [false, false, false, false] };
 
+  let activeStep = -1, stepTime = 0;
   W.install = {
     group,
+    onEnter() { activeStep = -1; },
     update(t, dt, reduce, sp = 0) {
-      const u = reduce ? Math.min(4.95, Math.max(0.05, sp * 5)) : clamp01(sp) * 5;
+      const step = Math.round(clamp01(sp) * 2);
+      if (step !== activeStep) { activeStep = step; stepTime = 0; }
+      else stepTime += dt;
+      const progress = reduce ? 1 : clamp01(stepTime / 8);
+      // Stay inside this card's action; never traverse the other actions on a slide change.
+      const ranges = [[1.22, 1.85], [3.0, 3.7], [4.15, 4.7]];
+      const u = lerp(ranges[step][0], ranges[step][1], progress);
       const fwd = u >= lastU;
       lastU = u;
       const wob = reduce ? 0 : 1;
 
       // camera dolly
-      const [fx, fy, fs, pan] = frame(u);
+      const [fx, fy, fs] = [F.b, F.d, F.e][step];
       cam.scale.setScalar(fs);
       cam.position.set(-fx * fs, -fy * fs, 0);
-      cam.rotation.z = reduce ? 0 : pan * 0.1 * (u < 2.5 ? 1 : -1);
+      cam.rotation.z = 0;
 
-      deskA.visible = u < 2.35;
-      deskB.visible = u > 1.6 && u < 4.35;
-      gridRoot.visible = board.visible = u > 3.55;
+      deskA.visible = step === 0;
+      deskB.visible = step === 1;
+      gridRoot.visible = board.visible = step === 2;
 
       // ---- 1: download ----
       const p1 = smooth(0.28, 0.9, u);
@@ -566,29 +562,10 @@ export function addInstallWorld(W) {
       fmtLabel.scale.setScalar(0.3 * Math.max(0.0001, easeOutBack(fk)));
       fmtLabel.position.set(hv.x, hv.y + 0.45, hv.z + 0.1);
 
-      // ---- 3: boot from the stick: power + F2, then F8, then Enter ----
-      const f = u - 2;
-      const keyIn = [smooth(0.2, 0.3, f), smooth(0.22, 0.32, f), smooth(0.5, 0.58, f), smooth(0.7, 0.78, f)];
-      const keyDown = [smooth(0.38, 0.42, f) * (1 - smooth(0.46, 0.5, f)), smooth(0.32, 0.36, f) * (1 - smooth(0.5, 0.54, f)), smooth(0.6, 0.63, f) * (1 - smooth(0.66, 0.7, f)), smooth(0.82, 0.85, f) * (1 - smooth(0.88, 0.92, f))];
-      const keyOut = smooth(0.95, 1.05, f);
-      KEYS.forEach((k, i) => {
-        const s = Math.max(0.0001, easeOutBack(keyIn[i]) * (1 - keyOut));
-        k.visible = s > 0.001;
-        k.scale.setScalar(s);
-        k.userData.cap.position.z = -0.12 * keyDown[i];
-        k.userData.capMat.color.set(keyDown[i] > 0.5 ? PAL.yellow : PAL.white);
-        k.rotation.z = wob ? Math.sin(t * 2 + i) * 0.04 : 0;
-        const down = keyDown[i] > 0.5;
-        if (down && !fired.keys[i] && fwd && !reduce) sfx.pop(500 + i * 120);
-        fired.keys[i] = down;
-      });
-      const on = f > 0.4;
-      powerMat.color.set(on ? '#5CFF8A' : '#5A5A66');
-      let scr = TEX.off;
-      if (f > 0.4) scr = TEX.post;
-      if (f > 0.47) scr = TEX.bios;
-      if (f > 0.64) scr = TEX.boot;
-      if (f > 0.88) scr = TEX.reformat;
+      // The slide shows the installation itself, without the BIOS/key-press cascade.
+      KEYS.forEach((key) => { key.visible = false; });
+      powerMat.color.set('#5CFF8A');
+      let scr = TEX.reformat;
       // ---- 4: it installs itself ----
       const g4 = u - 3;
       const p4 = smooth(0.0, 0.62, g4);
@@ -596,7 +573,7 @@ export function addInstallWorld(W) {
       monScreen.material.map = scr;
       monBar.userData.set(scr === TEX.reformat ? p4 : 0);
       const done1 = g4 > 0.66;
-      if (done1 && !fired.done1 && fwd && !reduce) { conf2.burst(); sfx.tada(); }
+      // Completion stays on screen quietly until the next slide.
       fired.done1 = done1;
 
       // ---- 5: ten sticks, 100 PCs ----

@@ -195,9 +195,10 @@
     </div>
   </section>
 
-  <section id="install" class="scene world install" data-scene="install" data-stop="How to install it" data-nav="install" aria-label="How to install Endless OS on 100 PCs, in two steps">
-    <div class="beat"><div class="card"><h2><span class="stepn">1</span>Prepare the USB</h2><p>Download Endless OS Full for offline apps.<br>Create a reformatter USB (32&nbsp;GB or more).</p></div></div>
-    <div class="beat"><div class="card"><h2><span class="stepn">2</span>Install on 100 PCs</h2><p>Boot from USB, install, then reuse the stick.<br>10 sticks × 10 rounds = 100 PCs.</p></div></div>
+  <section id="install" class="scene world install" data-scene="install" data-nav="install" aria-label="How to install Endless OS on 100 PCs, in three steps">
+    <div id="install-usb" class="beat" data-stop="Prepare the USB"><div class="card"><h2><span class="stepn">1</span>Prepare the USB</h2><p>Download Endless OS Full for offline apps.</p></div></div>
+    <div id="install-pc" class="beat" data-stop="Install on one PC"><div class="card"><h2><span class="stepn">2</span>Install on one PC</h2><p>Start the PC from the USB stick.<br>Install Endless OS and wait until it is ready.</p></div></div>
+    <div id="install-fleet" class="beat" data-stop="Repeat on 100 PCs"><div class="card"><h2><span class="stepn">3</span>Repeat on 100 PCs</h2><p>Reuse the USB sticks on the next computers.<br>10 sticks × 10 rounds = 100 PCs.</p></div></div>
   </section>
 
   <article id="bonus" class="scene right os bonus" data-scene="bonus" data-stop="Fun fact: the heaviest system" data-nav="install">
@@ -271,6 +272,6 @@
   <button type="button" class="btn small" id="tbStop">Stop</button>
 </div>
 
-<script src="js/app.js?v=08af113cba" defer></script>
+<script src="js/app.js?v=924af339a4" defer></script>
 </body>
 </html>
