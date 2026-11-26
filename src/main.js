@@ -135,7 +135,7 @@ import { initTerm } from './term.js';
     [['world', 34], ['top', 14], ['os', 32], ['free', 40]], // Lino Maini: the mission, the question, what an OS is and why free and open (seconds of his 2:00, from his script read slowly)
     [['teardown', 30], ['challenge', 26], ['method', 30], ['energy', 16], ['access', 18]], // Dennis Boschi: inside the computer, how we narrowed it down, energy and accessibility
     [['mint', 40], ['zorin', 30], ['endless', 34], ['pick', 30]], // Roberto Cacace: the three systems (live desktops on Zorin and Endless), our pick
-    [['install', 55], ['bonus', 20], ['end', 15]], // Davide Miron: two install cards, IBM fun fact and questions
+    [['install-usb', 18], ['install-pc', 18], ['install-fleet', 19], ['bonus', 20], ['end', 15]], // Davide Miron: three install cards, IBM fun fact and questions
   ];
   const tourStops = [];
   PARTS.forEach((list, part) => list.forEach(([id, share]) => { const el = document.getElementById(id); if (el) tourStops.push({ el, part, share }); }));

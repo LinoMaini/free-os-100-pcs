@@ -413,6 +413,7 @@ export function createStage(canvas, scenes, sections, opts = {}) {
   let W = 1, H = 1, mobile = false, baseDist = 14;
   let centers = [], rects = [], spans = [];
   const nav = document.querySelector('.nav');
+  const installBeats = [...document.querySelectorAll('#install > .beat')];
   const worldSec = {};
   sections.forEach((el, k) => { const sc = scenes[el.dataset.scene]; if (sc && sc.inside) worldSec[sc.inside] = k; });
   function measure() {
@@ -685,12 +686,12 @@ export function createStage(canvas, scenes, sections, opts = {}) {
         const k = worldSec[name];
         let raw = k === undefined || !rects[k] ? 0.5 : clamp01((window.scrollY + H * 0.5 - rects[k][0]) / rects[k][1]);
         if (name === 'install' && rects[k]) {
-          // Play all five animation phases over the cards' visible travel, matching the tour.
-          const start = rects[k][0] - (nav?.offsetHeight || 0);
-          const travel = Math.max(1, rects[k][1] - H * 1.2);
-          raw = clamp01((window.scrollY - start) / travel);
+          // Select the card occupying the viewport centre. Its animation plays while
+          // the presenter holds that slide, instead of scrubbing five actions in a glide.
+          const active = installBeats.findIndex((beat) => beat.getBoundingClientRect().bottom > H * 0.5);
+          raw = (active < 0 ? installBeats.length - 1 : active) / Math.max(1, installBeats.length - 1);
         }
-        w.sp = w.sp === undefined ? raw : lerp(w.sp, raw, 1 - Math.exp(-dt * 10));
+        w.sp = name === 'install' || w.sp === undefined ? raw : lerp(w.sp, raw, 1 - Math.exp(-dt * 10));
         w.update(time - w.t0, dt, reduce, w.sp);
       }
     }
