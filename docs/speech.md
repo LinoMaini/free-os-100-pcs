@@ -8,7 +8,7 @@ Lino ha 2:40, Dennis e Roberto 3 minuti, Davide 1:30: all'inizio premete **Play 
 | --- | --- |
 | Lino | The mission, Their first computer, What an operating system is, Why free and open |
 | Dennis | Inside the computer, Who we’re choosing for, About 100 in, 3 out, Energy, Accessibility |
-| Roberto | Linux Mint, Zorin OS Lite, Endless OS (demo dei desktop), How they score, Our pick |
+| Roberto | Linux Mint, Zorin OS Lite, Endless OS (demo dei desktop), Our pick |
 | Davide | Prepare the USB, Install on 100 PCs, Fun fact: the heaviest system, Questions? |
 
 Nota: i copioni di Lino e Davide seguono questa divisione. Quelli di Dennis e Roberto sono ancora quelli precedenti e vanno aggiornati. Questo file è la fonte aggiornata; il PDF precedente non include la nuova parte breve di Davide.
@@ -110,11 +110,7 @@ So, three good options. Which one is best? Roberto will compare them and give yo
 
 *The comparison, our pick and the plan · 3 minutes*
 
-**[How they score]**
-
-Thank you, Dennis. I’m Roberto. To compare the three, we scored each one from one to five on five criteria, using the official documentation and reviews. Endless gets a five for being easy on day one and a five for working without internet; Mint is the safest for future updates.
-
-**Adding it up: Endless 20 out of 25, Mint 18, Zorin Lite 16.**
+Thank you, Dennis. I’m Roberto. Here is our recommendation.
 
 **[Energy]**
 
