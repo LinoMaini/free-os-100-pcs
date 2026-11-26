@@ -57,8 +57,8 @@ Tempi del tour (la tua chiavetta dura 2:40): The mission 0:00–0:21 (quattro ca
 
 *(Cartello 1 – 100 donated PCs)* Good morning, everyone. Asus wants to donate one hundred computers to an NGO, a charity.
 *(Cartello 2 – 2 billion people are still offline)* But two billion people are still offline, without internet,
-*(Cartello 3 – Wi-Fi and power come and go)* and there Wi-Fi and electricity often stop working.
-*(Cartello 4 – Our job)* **So we need a free system that works anyway.**
+*(Cartello 3 – Where they’re going, Wi-Fi and power come and go)* and where these computers are going, Wi-Fi and electricity often stop working.
+*(Cartello 4 – Our job: pick the free system that works anyway)* **So we need a free system that works anyway.**
 
 **[Their first computer]**
 
@@ -70,11 +70,11 @@ To answer, let’s start with the basics: what is an operating system? A compute
 
 It controls the **hardware**, the parts you can touch, like the keyboard and the screen, and it gives us the desktop and the apps. **Without it, a computer can’t do anything.**
 
-Windows and macOS are the most famous, but they cost money and their **code**, the instructions of the program, is secret. Our three systems are based on **Linux**, a famous open system, and they do the same job for free.
+Windows and macOS are the most famous, but they cost money and their **code**, the instructions that make them work, is secret. Our three systems are all built on **Linux**, the heart of the system, and they do the same job for free.
 
 **[Why free and open]**
 
-But why free and open? **Free** means there is no **licence**, that is no payment to use it, not for one computer and not for one hundred, so the NGO can spend its money on other things.
+But why free and open? **Free** means there is no **licence fee**, the price you pay to use a program. Not for one computer, and not for one hundred. So the NGO can spend its money on other things.
 
 **Open** means everybody can see the code, change it and share it, and people everywhere help to fix it.
 
