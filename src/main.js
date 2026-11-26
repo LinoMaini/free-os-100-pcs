@@ -144,7 +144,7 @@ import { initTerm } from './term.js';
   const table = document.getElementById('scoreTable');
   const squares = (n, key) => Array.from({ length: 5 }, (_, i) => `<i class="sq${i < n ? ' on' : ''}" data-os="${key}"></i>`).join('');
   table.innerHTML =
-    `<div class="srow shead"><span>Criterion</span><span>How much it matters</span>${OS.map((o) => `<span class="h-${o.key}">${o.name}</span>`).join('')}</div>` +
+    `<div class="srow shead"><span>Criterion</span><span>Weight</span>${OS.map((o) => `<span class="h-${o.key}">${o.name}</span>`).join('')}</div>` +
     CRITERIA.map((c, r) => `<div class="srow">
       <span class="crit">${c.label}</span>
       <label class="weight"><span class="vh">How much ${c.label.toLowerCase()} matters</span>
