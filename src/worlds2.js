@@ -513,7 +513,7 @@ export function addAbsurdWorlds(W) {
       return f;
     });
     root.add(leds);
-    const weight = makeLabel('2,558 kg', PAL.white);
+    const weight = makeLabel('Paid software', PAL.white);
     weight.position.set(0, 1.35, 0.5);
     root.add(weight);
     const bolt = part(new THREE.ExtrudeGeometry(new THREE.Shape([[-0.05, 0.55], [0.25, 0.55], [0.05, 0.12], [0.28, 0.12], [-0.12, -0.55], [0.0, -0.05], [-0.25, -0.05]].map(([x, y]) => new THREE.Vector2(x, y))), { depth: 0.1, bevelEnabled: false }).center(), toon(PAL.yellow), 0.02);
