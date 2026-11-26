@@ -685,7 +685,7 @@ export function createStage(canvas, scenes, sections, opts = {}) {
         const k = worldSec[name];
         let raw = k === undefined || !rects[k] ? 0.5 : clamp01((window.scrollY + H * 0.5 - rects[k][0]) / rects[k][1]);
         if (name === 'install' && rects[k]) {
-          // Play all five animation phases over the two cards' visible travel, matching the tour.
+          // Play all five animation phases over the cards' visible travel, matching the tour.
           const start = rects[k][0] - (nav?.offsetHeight || 0);
           const travel = Math.max(1, rects[k][1] - H * 1.2);
           raw = clamp01((window.scrollY - start) / travel);
